@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import DashboardHeader from '@/components/dashboard/DashboardHeader.jsx';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar.jsx';
 import AICopilot from '@/components/copilot/AICopilot.jsx';
@@ -27,6 +27,11 @@ import AICopilot from '@/components/copilot/AICopilot.jsx';
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  // El visor DICOM tiene su propio layout interno (modo oscuro estricto,
+  // copiloto propio, sin padding). Desactivamos el padding y el copiloto global.
+  const isVisor = location.pathname.startsWith('/dashboard/visor');
 
   return (
     <div className="flex min-h-screen flex-col bg-clinical-900">
@@ -50,34 +55,34 @@ export default function DashboardLayout() {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
-          {/*
-            Gradiente sutil de bienvenida al área de trabajo:
-            clinical-900 arriba → clinical-800/60 abajo.
-            El contenido (Outlet) flota sobre este fondo.
-          */}
-          <div className="min-h-full bg-gradient-to-b from-clinical-900 to-clinical-800/60 px-4 py-6 sm:px-6 lg:px-8">
-            <Outlet />
-          </div>
+          {isVisor ? (
+            /* El visor ocupa todo sin padding — tiene su propio layout interno */
+            <div className="flex flex-1 min-h-0 overflow-hidden">
+              <Outlet />
+            </div>
+          ) : (
+            <div className="overflow-y-auto flex-1">
+              <div className="min-h-full bg-gradient-to-b from-clinical-900 to-clinical-800/60 px-4 py-6 sm:px-6 lg:px-8">
+                <Outlet />
+              </div>
+            </div>
+          )}
         </main>
 
-        {/* ── COPILOTO IA — ANCLADO A LA DERECHA ── */}
-        {/*
-          El copiloto ocupa una columna fija de 320px en escritorio.
-          En tablet y móvil se oculta (el usuario lo abre desde el header).
-          Sticky dentro del body para mantenerse visible al hacer scroll.
-        */}
-        <aside
-          aria-label="Copiloto IA clínico"
-          className="hidden w-80 shrink-0 flex-col border-l border-white/[0.06]
-                     bg-clinical-900 xl:flex"
-        >
-          {/* El copiloto es sticky dentro de su columna */}
-          <div className="sticky top-0 flex h-[calc(100vh-5rem)] flex-col">
-            <AICopilot dark />
-          </div>
-        </aside>
+        {/* ── COPILOTO IA — ANCLADO A LA DERECHA (oculto en visor) ── */}
+        {!isVisor && (
+          <aside
+            aria-label="Copiloto IA clínico"
+            className="hidden w-80 shrink-0 flex-col border-l border-white/[0.06]
+                       bg-clinical-900 xl:flex"
+          >
+            <div className="sticky top-0 flex h-[calc(100vh-5rem)] flex-col">
+              <AICopilot dark />
+            </div>
+          </aside>
+        )}
 
       </div>
     </div>
