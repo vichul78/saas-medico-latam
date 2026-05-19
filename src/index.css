@@ -53,4 +53,13 @@
     @apply inline-flex items-center rounded-full bg-violet-100 px-2.5 py-0.5
            text-xs font-medium text-violet-700;
   }
+
+  /* Input oscuro para pantalla de Login */
+  .dark-input {
+    @apply rounded-xl border border-white/[0.10] bg-white/[0.06] px-4 py-2.5
+           text-sm text-white placeholder:text-clinical-600
+           transition
+           focus:border-electric-500 focus:bg-white/[0.09]
+           focus:outline-none focus:ring-2 focus:ring-electric-500/30;
+  }
 }
