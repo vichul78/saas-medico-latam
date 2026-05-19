@@ -2,13 +2,14 @@ import { useState } from 'react';
 import ClinicalAvatar from '@/components/common/ClinicalAvatar.jsx';
 
 /*
-  Copiloto IA clínico.
+  Copiloto IA clínico — Iris.
   Regla obligatoria: ANCLADO A LA DERECHA.
-  - Posición sticky dentro de su columna.
-  - El centro y la izquierda quedan libres para datos e historial.
-  - Paleta: púrpura eléctrico / violeta. Sin verdes.
+
+  Props:
+    dark (bool) — activa la variante oscura para el DashboardLayout.
+                  Por defecto false (modo claro, para el MainLayout público).
 */
-export default function AICopilot() {
+export default function AICopilot({ dark = false }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -32,13 +33,33 @@ export default function AICopilot() {
     setInput('');
   }
 
+  // ── Tokens de color según modo claro/oscuro ──
+  const t = dark ? {
+    wrap:        'flex h-full flex-col border-0 bg-transparent',
+    body:        'flex-1 space-y-3 overflow-y-auto px-4 py-4',
+    chipsBorder: 'border-t border-white/[0.07] px-4 py-3',
+    chipsLabel:  'mb-2 text-[11px] font-semibold uppercase tracking-wider text-violet-400',
+    chip:        'rounded-full border border-electric-500/30 bg-electric-500/10 px-2.5 py-1 text-xs font-medium text-electric-300 transition hover:bg-electric-500/20',
+    formWrap:    'flex items-center gap-2 border-t border-white/[0.07] bg-clinical-900 p-3',
+    input:       'flex-1 rounded-lg border border-white/[0.10] bg-white/[0.05] px-3 py-2 text-sm text-white placeholder:text-clinical-600 focus:border-electric-500 focus:outline-none focus:ring-2 focus:ring-electric-500/25',
+    msgAssist:   'bg-white/[0.06] text-clinical-200',
+  } : {
+    wrap:        'sticky top-28 flex max-h-[calc(100vh-8rem)] flex-col rounded-clinical border border-electric-200 bg-white shadow-copilot',
+    body:        'flex-1 space-y-3 overflow-y-auto px-4 py-4',
+    chipsBorder: 'border-t border-clinical-200 px-4 py-3',
+    chipsLabel:  'mb-2 text-[11px] font-semibold uppercase tracking-wider text-violet-600',
+    chip:        'rounded-full border border-electric-200 bg-electric-50 px-2.5 py-1 text-xs font-medium text-electric-700 transition hover:bg-electric-100',
+    formWrap:    'flex items-center gap-2 rounded-b-clinical border-t border-clinical-200 bg-clinical-50 p-3',
+    input:       'flex-1 rounded-md border border-clinical-200 bg-white px-3 py-2 text-sm text-clinical-800 placeholder:text-clinical-400 focus:border-electric-400 focus:outline-none focus:ring-2 focus:ring-electric-100',
+    msgAssist:   'bg-electric-50 text-clinical-800',
+  };
+
   return (
-    <aside
-      aria-label="Copiloto IA clínico"
-      className="sticky top-28 flex max-h-[calc(100vh-8rem)] flex-col rounded-clinical border border-electric-200 bg-white shadow-copilot"
-    >
-      {/* Cabecera del copiloto */}
-      <header className="flex items-center justify-between rounded-t-clinical bg-electric-gradient px-4 py-3 text-white">
+    <aside aria-label="Copiloto IA clínico" className={t.wrap}>
+
+      {/* Cabecera — igual en ambos modos */}
+      <header className="flex items-center justify-between bg-electric-gradient px-4 py-3 text-white
+                         rounded-t-clinical">
         <div className="flex items-center gap-3">
           <ClinicalAvatar name="Iris" variant="neutral" size={36} />
           <div>
@@ -54,25 +75,18 @@ export default function AICopilot() {
       </header>
 
       {/* Conversación */}
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div className={t.body}>
         {messages.map((m, idx) => (
-          <Message key={idx} role={m.role} text={m.text} />
+          <Message key={idx} role={m.role} text={m.text} assistClass={t.msgAssist} />
         ))}
       </div>
 
       {/* Sugerencias rápidas */}
-      <div className="border-t border-clinical-200 px-4 py-3">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-violet-600">
-          Sugerencias
-        </p>
+      <div className={t.chipsBorder}>
+        <p className={t.chipsLabel}>Sugerencias</p>
         <div className="flex flex-wrap gap-2">
           {['Resumir estudio', 'Reporte DICOM', 'Diferencial', 'Receta'].map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setInput(s)}
-              className="rounded-full border border-electric-200 bg-electric-50 px-2.5 py-1 text-xs font-medium text-electric-700 transition hover:bg-electric-100"
-            >
+            <button key={s} type="button" onClick={() => setInput(s)} className={t.chip}>
               {s}
             </button>
           ))}
@@ -80,17 +94,14 @@ export default function AICopilot() {
       </div>
 
       {/* Input */}
-      <form
-        onSubmit={handleSubmit}
-        className="flex items-center gap-2 rounded-b-clinical border-t border-clinical-200 bg-clinical-50 p-3"
-      >
+      <form onSubmit={handleSubmit} className={t.formWrap}>
         <input
           aria-label="Mensaje al copiloto"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Pregunta a Iris…"
-          className="flex-1 rounded-md border border-clinical-200 bg-white px-3 py-2 text-sm text-clinical-800 placeholder:text-clinical-400 focus:border-electric-400 focus:outline-none focus:ring-2 focus:ring-electric-100"
+          className={t.input}
         />
         <button type="submit" className="btn-primary !px-3 !py-2">
           Enviar
@@ -100,15 +111,13 @@ export default function AICopilot() {
   );
 }
 
-function Message({ role, text }) {
+function Message({ role, text, assistClass }) {
   const isUser = role === 'user';
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`max-w-[85%] rounded-clinical px-3 py-2 text-sm leading-relaxed ${
-          isUser
-            ? 'bg-violet-500 text-white'
-            : 'bg-electric-50 text-clinical-800'
+          isUser ? 'bg-violet-500 text-white' : assistClass
         }`}
       >
         {text}

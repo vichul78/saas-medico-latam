@@ -50,6 +50,17 @@ export default function Login() {
     const { error: authError } = await signIn(email, password);
 
     if (authError) {
+      /*
+        Estrategia híbrida de logging:
+          1. console.error → error ORIGINAL de Supabase en inglés (para depuración técnica).
+          2. setError      → mensaje traducido al español clínico (para el usuario en UI).
+        Nunca se muestra el mensaje crudo de Supabase directamente en el DOM.
+      */
+      // eslint-disable-next-line no-console
+      console.error(
+        '[Login] signIn — Supabase error (original EN):',
+        { code: authError.code, message: authError.message, status: authError.status },
+      );
       setError(friendlyError(authError.message));
       setSubmitting(false);
     }

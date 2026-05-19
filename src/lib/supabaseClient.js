@@ -51,10 +51,19 @@ export async function signIn(email, password) {
 
 /**
  * Cierra la sesión activa.
+ * Log híbrido: si Supabase devuelve error, se registra el objeto original EN
+ * en consola; el caller recibe el error crudo para decidir qué mostrar en UI.
  * @returns {{ error }}
  */
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error(
+      '[supabaseClient] signOut — Supabase error (original EN):',
+      { code: error.code, message: error.message, status: error.status },
+    );
+  }
   return { error };
 }
 
@@ -109,9 +118,17 @@ export function onAuthChange(callback) {
 
 /**
  * Devuelve la sesión activa sin suscribirse.
+ * Log híbrido: registra error original EN si falla; el caller decide qué mostrar.
  * @returns {{ session: object|null, error }}
  */
 export async function getSession() {
   const { data: { session }, error } = await supabase.auth.getSession();
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error(
+      '[supabaseClient] getSession — Supabase error (original EN):',
+      { code: error.code, message: error.message, status: error.status },
+    );
+  }
   return { session, error };
 }

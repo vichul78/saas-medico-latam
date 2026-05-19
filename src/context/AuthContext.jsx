@@ -34,12 +34,27 @@ export function AuthProvider({ children }) {
     try {
       const { profile: p, error } = await getProfile(userId);
       if (error) {
+        /*
+          Estrategia híbrida de logging:
+            - console.error registra el error ORIGINAL en inglés (objeto completo
+              con code, message, details, hint) para depuración técnica.
+            - La UI nunca recibe este mensaje; el flujo simplemente deja profile=null
+              y el ProtectedRoute redirige a /login en el siguiente render.
+        */
         // eslint-disable-next-line no-console
-        console.error('[AuthContext] Error cargando perfil:', error.message);
+        console.error(
+          '[AuthContext] loadProfile — Supabase error (original EN):',
+          { code: error.code, message: error.message, details: error.details, hint: error.hint },
+        );
         setProfile(null);
       } else {
         setProfile(p);
       }
+    } catch (unexpectedError) {
+      // Errores de red u otros fallos no-Supabase: también se loggean en crudo.
+      // eslint-disable-next-line no-console
+      console.error('[AuthContext] loadProfile — unexpected error:', unexpectedError);
+      setProfile(null);
     } finally {
       fetchingRef.current = false;
       setProfLoading(false);

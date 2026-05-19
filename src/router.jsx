@@ -1,7 +1,8 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 
 // ── Layouts ──────────────────────────────────────────────────────────────────
-import MainLayout from '@/components/layout/MainLayout.jsx';
+import MainLayout      from '@/components/layout/MainLayout.jsx';
+import DashboardLayout from '@/components/dashboard/DashboardLayout.jsx';
 
 // ── Auth guards ───────────────────────────────────────────────────────────────
 import ProtectedRoute from '@/components/auth/ProtectedRoute.jsx';
@@ -61,55 +62,95 @@ import ServiciosIncluidos from '@/pages/features/custom/ServiciosIncluidos.jsx';
 import ModeloPrecios    from '@/pages/features/custom/ModeloPrecios.jsx';
 
 /*
-  ┌─────────────────────────────────────────────────────────────────────────┐
-  │  ÁRBOL DE RUTAS                                                         │
-  │                                                                         │
-  │  PÚBLICAS (sin auth):                                                   │
-  │    /login                                                               │
-  │                                                                         │
-  │  DENTRO DE MainLayout (con sidebar + copiloto):                         │
-  │    /                 → Home (pública)                                   │
-  │    /productos        → Productos (pública)                              │
-  │    /nosotros         → Nosotros (pública)                               │
-  │    /contratar        → Contratar (pública)                              │
-  │    /soluciones/…     → 11 especialidades (públicas, contenido de venta) │
-  │    /funcionalidades/…→ 16 funcionalidades (públicas, marketing)         │
-  │                                                                         │
-  │  PROTEGIDAS (requieren sesión activa):                                  │
-  │    /dashboard            → RoleRedirect (dispatcher por rol)            │
-  │    /dashboard/admin      → AdminDashboard    [solo admin]               │
-  │    /dashboard/medico     → MedicoDashboard   [solo medico]              │
-  │    /dashboard/paciente   → PacienteDashboard [solo paciente]            │
-  │                                                                         │
-  │  ERRORES:                                                               │
-  │    *  → NotFound                                                        │
-  └─────────────────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │  ÁRBOL DE RUTAS                                                             │
+  │                                                                             │
+  │  COMPLETAMENTE FUERA DE LAYOUTS:                                            │
+  │    /login  → Login (pantalla completa oscura)                               │
+  │                                                                             │
+  │  BAJO MainLayout (sitio público — sidebar de marketing + copiloto claro):   │
+  │    /                 → Home                                                 │
+  │    /productos        → Productos                                            │
+  │    /nosotros         → Nosotros                                             │
+  │    /contratar        → Contratar                                            │
+  │    /soluciones/…     → 11 especialidades                                    │
+  │    /funcionalidades/…→ 16 funcionalidades                                   │
+  │                                                                             │
+  │  BAJO DashboardLayout (área autenticada — 3 cols oscuras + copiloto dark):  │
+  │    /dashboard            → RoleRedirect (dispatcher por rol)                │
+  │    /dashboard/admin      → AdminDashboard    [solo admin]                   │
+  │    /dashboard/medico     → MedicoDashboard   [solo medico]                  │
+  │    /dashboard/paciente   → PacienteDashboard [solo paciente]                │
+  │                                                                             │
+  │  ERRORES:                                                                   │
+  │    *  → NotFound                                                            │
+  └─────────────────────────────────────────────────────────────────────────────┘
 */
 export const router = createBrowserRouter([
 
-  // ── Ruta completamente fuera del MainLayout: Login ────────────────────
+  // ── 1. Pantalla de Login (fuera de cualquier layout) ──────────────────────
   {
     path:         '/login',
     element:      <Login />,
     errorElement: <NotFound />,
   },
 
-  // ── MainLayout envuelve el sitio público + rutas protegidas ──────────
+  // ── 2. DashboardLayout — área autenticada ─────────────────────────────────
+  //    Tiene su propio header oscuro, sidebar colapsable y copiloto dark.
+  //    Todas las rutas aquí requieren sesión; el guard está por rol.
+  {
+    path:         '/dashboard',
+    element:      <DashboardLayout />,
+    errorElement: <NotFound />,
+    children: [
+
+      // Dispatcher: redirige según rol sin renderizar nada propio.
+      { index: true, element: <RoleRedirect /> },
+
+      // Admin
+      {
+        element: <ProtectedRoute requiredRoles={['admin']} />,
+        children: [
+          { path: 'admin', element: <AdminDashboard /> },
+        ],
+      },
+
+      // Médico
+      {
+        element: <ProtectedRoute requiredRoles={['medico']} />,
+        children: [
+          { path: 'medico', element: <MedicoDashboard /> },
+        ],
+      },
+
+      // Paciente
+      {
+        element: <ProtectedRoute requiredRoles={['paciente']} />,
+        children: [
+          { path: 'paciente', element: <PacienteDashboard /> },
+        ],
+      },
+
+      // 404 dentro del dashboard
+      { path: '*', element: <NotFound /> },
+    ],
+  },
+
+  // ── 3. MainLayout — sitio público (marketing + landing) ──────────────────
   {
     path:         '/',
     element:      <MainLayout />,
     errorElement: <NotFound />,
     children: [
 
-      // ── HOME ──────────────────────────────────────────────────────────
       { index: true, element: <Home /> },
 
-      // ── ADICIONALES (públicas) ────────────────────────────────────────
+      // Adicionales
       { path: 'productos',  element: <Productos /> },
       { path: 'nosotros',   element: <Nosotros /> },
       { path: 'contratar',  element: <Contratar /> },
 
-      // ── 1. SOLUCIONES POR ESPECIALIDADES (públicas) ───────────────────
+      // 1. Soluciones por especialidades
       {
         path: 'soluciones',
         children: [
@@ -127,76 +168,38 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // ── 2. FUNCIONALIDADES (públicas) ─────────────────────────────────
+      // 2. Funcionalidades
       {
         path: 'funcionalidades',
         children: [
           // 2.1 Tecnología avanzada
-          { path: 'tecnologia/ia-asistente',       element: <IAAsistente /> },
-          { path: 'tecnologia/visor-dicom',         element: <VisorDicom /> },
-          { path: 'tecnologia/envio-resultados',    element: <EnvioResultados /> },
-          { path: 'tecnologia/compatibilidad-total',element: <CompatibilidadTotal /> },
+          { path: 'tecnologia/ia-asistente',        element: <IAAsistente /> },
+          { path: 'tecnologia/visor-dicom',          element: <VisorDicom /> },
+          { path: 'tecnologia/envio-resultados',     element: <EnvioResultados /> },
+          { path: 'tecnologia/compatibilidad-total', element: <CompatibilidadTotal /> },
 
           // 2.2 Gestión integral
-          { path: 'gestion/almacenamiento-seguro',  element: <AlmacenamientoSeguro /> },
-          { path: 'gestion/estudios',               element: <GestionEstudios /> },
-          { path: 'gestion/citas-agendas',          element: <GestionCitas /> },
-          { path: 'gestion/documentacion',          element: <Documentacion /> },
-          { path: 'gestion/facturacion-cobros',     element: <FacturacionCobros /> },
+          { path: 'gestion/almacenamiento-seguro',   element: <AlmacenamientoSeguro /> },
+          { path: 'gestion/estudios',                element: <GestionEstudios /> },
+          { path: 'gestion/citas-agendas',           element: <GestionCitas /> },
+          { path: 'gestion/documentacion',           element: <Documentacion /> },
+          { path: 'gestion/facturacion-cobros',      element: <FacturacionCobros /> },
 
           // 2.3 Fácil de usar
-          { path: 'facil-uso/portal-pacientes',         element: <PortalPacientes /> },
-          { path: 'facil-uso/portal-medicos',           element: <PortalMedicos /> },
-          { path: 'facil-uso/recordatorios-citas',      element: <RecordatoriosCitas /> },
-          { path: 'facil-uso/reduccion-inasistencias',  element: <ReduccionInasistencias /> },
+          { path: 'facil-uso/portal-pacientes',          element: <PortalPacientes /> },
+          { path: 'facil-uso/portal-medicos',            element: <PortalMedicos /> },
+          { path: 'facil-uso/recordatorios-citas',       element: <RecordatoriosCitas /> },
+          { path: 'facil-uso/reduccion-inasistencias',   element: <ReduccionInasistencias /> },
 
           // 2.4 Personalizado
-          { path: 'personalizado/adaptacion-total',     element: <AdaptacionTotal /> },
-          { path: 'personalizado/integraciones',        element: <Integraciones /> },
-          { path: 'personalizado/servicios-incluidos',  element: <ServiciosIncluidos /> },
-          { path: 'personalizado/modelo-precios',       element: <ModeloPrecios /> },
+          { path: 'personalizado/adaptacion-total',      element: <AdaptacionTotal /> },
+          { path: 'personalizado/integraciones',         element: <Integraciones /> },
+          { path: 'personalizado/servicios-incluidos',   element: <ServiciosIncluidos /> },
+          { path: 'personalizado/modelo-precios',        element: <ModeloPrecios /> },
         ],
       },
 
-      // ── DASHBOARDS PROTEGIDOS ─────────────────────────────────────────
-      //
-      //  /dashboard            → RoleRedirect (lee el rol y redirige)
-      //  /dashboard/admin      → solo role==='admin'
-      //  /dashboard/medico     → solo role==='medico'
-      //  /dashboard/paciente   → solo role==='paciente'
-      {
-        path: 'dashboard',
-        children: [
-          // Dispatcher: redirige según rol
-          { index: true, element: <RoleRedirect /> },
-
-          // Admin — solo admins; cualquier otro rol vuelve a su propio dashboard
-          {
-            element: <ProtectedRoute requiredRoles={['admin']} />,
-            children: [
-              { path: 'admin', element: <AdminDashboard /> },
-            ],
-          },
-
-          // Médico — solo medicos
-          {
-            element: <ProtectedRoute requiredRoles={['medico']} />,
-            children: [
-              { path: 'medico', element: <MedicoDashboard /> },
-            ],
-          },
-
-          // Paciente — solo pacientes
-          {
-            element: <ProtectedRoute requiredRoles={['paciente']} />,
-            children: [
-              { path: 'paciente', element: <PacienteDashboard /> },
-            ],
-          },
-        ],
-      },
-
-      // ── 404 dentro del layout ─────────────────────────────────────────
+      // 404 dentro del sitio público
       { path: '*', element: <NotFound /> },
     ],
   },
