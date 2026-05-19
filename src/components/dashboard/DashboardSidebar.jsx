@@ -60,8 +60,9 @@ const NAV_GROUPS = [
     key:   'clinical',
     label: 'Módulos clínicos',
     items: [
-      { label: 'Pacientes', to: '/dashboard/pacientes' },
-      { label: 'Citas y Agendas', to: '/dashboard/citas' },
+      { label: 'Pacientes',       to: '/dashboard/pacientes' },
+      { label: 'Citas y Agendas', to: '/dashboard/citas'     },
+      { label: 'Visor DICOM',     to: '/dashboard/visor'     },
     ],
   },
   {
