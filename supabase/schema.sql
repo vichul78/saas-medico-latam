@@ -537,4 +537,24 @@ VALUES
   ('Clínica Demo CO',  'demo-co', 'CO', 'COP', 'es-CO', 'America/Bogota',        'starter'),
   ('Clínica Demo CL',  'demo-cl', 'CL', 'CLP', 'es-CL', 'America/Santiago',      'starter');
 
+-- ─────────────────────────────────────────────
+-- 14. MIGRACIÓN v0.2.0 — Módulo de Facturación
+--     Nota: Las tablas `invoices` e `invoice_items` y sus políticas RLS
+--     ya fueron creadas en la sección 9 y 12 de este mismo schema.
+--     Los cambios de v0.2.0 son solo de frontend (BillingPage, hooks, helpers).
+--
+--     Si actualizas un proyecto existente, verifica que existan:
+--       ✓ CREATE TABLE invoices (...)
+--       ✓ CREATE TABLE invoice_items (...)
+--       ✓ CREATE POLICY "admin_invoices" ON invoices ...
+--       ✓ CREATE POLICY "patient_own_invoices" ON invoices ...
+--       ✓ CREATE POLICY "admin_read_audit" ON audit_log ...
+--
+--     Índices de rendimiento adicionales recomendados para producción:
+-- ─────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_invoices_issued_at  ON invoices(issued_at DESC);
+CREATE INDEX IF NOT EXISTS idx_invoices_due_at     ON invoices(due_at);
+CREATE INDEX IF NOT EXISTS idx_invoices_currency   ON invoices(currency);
+CREATE INDEX IF NOT EXISTS idx_invoice_items_inv   ON invoice_items(invoice_id);
+
 -- FIN DEL SCHEMA

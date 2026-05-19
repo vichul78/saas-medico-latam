@@ -27,6 +27,7 @@ import PacienteDashboard from '@/pages/dashboards/PacienteDashboard.jsx';
 import PatientsPage     from '@/pages/clinical/PatientsPage.jsx';
 import AppointmentsPage from '@/pages/clinical/AppointmentsPage.jsx';
 import VisorDicomPage   from '@/pages/features/tech/VisorDicom.jsx';
+import BillingPage      from '@/pages/billing/BillingPage.jsx';
 
 // ── Soluciones por especialidades (orden obligatorio) ─────────────────────────
 import Radiologia  from '@/pages/specialties/Radiologia.jsx';
@@ -143,6 +144,14 @@ export const router = createBrowserRouter([
           { path: 'pacientes', element: <PatientsPage /> },
           { path: 'citas',     element: <AppointmentsPage /> },
           { path: 'visor',     element: <VisorDicomPage /> },
+        ],
+      },
+
+      // ── Módulo de facturación (solo admin) ───────────────────────────────
+      {
+        element: <ProtectedRoute requiredRoles={['admin']} />,
+        children: [
+          { path: 'facturacion', element: <BillingPage /> },
         ],
       },
 
