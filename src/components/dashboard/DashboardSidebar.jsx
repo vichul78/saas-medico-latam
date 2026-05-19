@@ -15,6 +15,12 @@ import { SPECIALTIES, FEATURES, ADDITIONAL } from '@/lib/navigation.js';
 
 // Iconos SVG inline para cada grupo de navegación
 const GROUP_ICONS = {
+  clinical: (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round"
+        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+    </svg>
+  ),
   specialties: (
     <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round"
@@ -50,6 +56,14 @@ const GROUP_ICONS = {
 
 // Datos de cada grupo de navegación
 const NAV_GROUPS = [
+  {
+    key:   'clinical',
+    label: 'Módulos clínicos',
+    items: [
+      { label: 'Pacientes', to: '/dashboard/pacientes' },
+      { label: 'Citas y Agendas', to: '/dashboard/citas' },
+    ],
+  },
   {
     key:   'specialties',
     label: '1. Especialidades',
@@ -99,7 +113,7 @@ const NAV_GROUPS = [
 
 export default function DashboardSidebar({ open, onClose }) {
   // Grupos expandidos por defecto: especialidades y tecnología
-  const [expanded, setExpanded] = useState({ specialties: true, tech: true });
+  const [expanded, setExpanded] = useState({ clinical: true, specialties: false, tech: true });
 
   function toggle(key) {
     setExpanded(prev => ({ ...prev, [key]: !prev[key] }));

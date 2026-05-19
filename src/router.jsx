@@ -19,9 +19,13 @@ import Nosotros  from '@/pages/Nosotros.jsx';
 import Contratar from '@/pages/Contratar.jsx';
 
 // ── Dashboards por rol ────────────────────────────────────────────────────────
-import AdminDashboard   from '@/pages/dashboards/AdminDashboard.jsx';
-import MedicoDashboard  from '@/pages/dashboards/MedicoDashboard.jsx';
+import AdminDashboard    from '@/pages/dashboards/AdminDashboard.jsx';
+import MedicoDashboard   from '@/pages/dashboards/MedicoDashboard.jsx';
 import PacienteDashboard from '@/pages/dashboards/PacienteDashboard.jsx';
+
+// ── Módulos clínicos ──────────────────────────────────────────────────────────
+import PatientsPage     from '@/pages/clinical/PatientsPage.jsx';
+import AppointmentsPage from '@/pages/clinical/AppointmentsPage.jsx';
 
 // ── Soluciones por especialidades (orden obligatorio) ─────────────────────────
 import Radiologia  from '@/pages/specialties/Radiologia.jsx';
@@ -128,6 +132,15 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute requiredRoles={['paciente']} />,
         children: [
           { path: 'paciente', element: <PacienteDashboard /> },
+        ],
+      },
+
+      // ── Módulos clínicos (admin + medico) ────────────────────────────────
+      {
+        element: <ProtectedRoute requiredRoles={['admin', 'medico']} />,
+        children: [
+          { path: 'pacientes', element: <PatientsPage /> },
+          { path: 'citas',     element: <AppointmentsPage /> },
         ],
       },
 
