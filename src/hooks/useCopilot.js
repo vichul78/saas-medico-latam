@@ -153,6 +153,12 @@ export function useCopilot({
     if (last) sendMessage(last.text);
   }, [messages, sendMessage]);
 
+  // ── Obtener el último texto del asistente (para exportar a PDF) ──────
+  const getLastAssistantText = useCallback(() => {
+    const last = [...messages].reverse().find(m => m.role === 'assistant' && m.status === 'sent');
+    return last?.text ?? '';
+  }, [messages]);
+
   return {
     messages,
     input,
@@ -163,6 +169,7 @@ export function useCopilot({
     triggerAction,
     clearHistory,
     retryLast,
+    getLastAssistantText,
   };
 }
 
@@ -172,6 +179,12 @@ function buildMockReply(prompt, context) {
   const pat   = context?.patient;
   const study = context?.study;
 
+  if (lower.includes('impresión') || lower.includes('impresion') || lower.includes('estructurado') || lower.includes('dictado')) {
+    const patName  = pat?.name ?? '[NOMBRE DEL PACIENTE]';
+    const modality = study?.modality ?? 'CT';
+    const fecha    = new Date().toLocaleDateString('es');
+    return `INFORME RADIOLÓGICO ESTRUCTURADO\n\nPaciente: ${patName}\nModalidad: ${modality}\nFecha: ${fecha}\n\nTÉCNICA:\nEstudio realizado con técnica estándar sin medio de contraste endovenoso.\n\nHALLAZGOS:\n• Parénquima pulmonar sin opacidades consolidativas activas.\n• Silueta cardiovascular en límite normal (CTR estimado < 0.50).\n• Hilios pulmonares de morfología y densidad normales.\n• Sin derrame pleural visible en proyección disponible.\n• Estructuras óseas de la parrilla costal sin lesiones agudas.\n• Mediastino centrado, de amplitud conservada.\n• Diafragmas de contorno regular.\n\nIMPRESIÓN DIAGNÓSTICA:\nEstudio de ${modality} de tórax dentro de parámetros normales para la edad referida. No se identifican hallazgos patológicos agudos en la exploración actual.\n\nRECOMENDACIÓN:\nCorrelacionar con datos clínicos. Control según criterio del médico tratante.\n\n_Este borrador fue generado por Iris IA. Requiere revisión y firma del médico responsable._`;
+  }
   if (lower.includes('informe') || lower.includes('reporte')) {
     return `**Borrador de informe radiológico**\n\nPaciente: ${pat?.name ?? '[NOMBRE]'}\nModalidad: ${study?.modality ?? 'CT'}\nFecha: ${new Date().toLocaleDateString('es')}\n\n**Hallazgos:**\n• Parénquima pulmonar sin consolidaciones activas.\n• Silueta cardiovascular dentro de límites normales (CTR < 0.50).\n• Sin derrame pleural bilateral.\n• Estructuras óseas sin lesiones líticas ni blásticas agudas.\n\n**Impresión:** Estudio dentro de parámetros normales para la edad del paciente.\n\n*Este borrador requiere revisión y firma del médico responsable.*`;
   }
