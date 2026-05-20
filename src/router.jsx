@@ -13,6 +13,7 @@ import Login    from '@/pages/Login.jsx';
 import NotFound from '@/pages/NotFound.jsx';
 
 // ── Páginas del sitio (acceso público + autenticado) ─────────────────────────
+import LandingPage from '@/pages/LandingPage.jsx';  // ← nueva landing pública
 import Home      from '@/pages/Home.jsx';
 import Productos from '@/pages/Productos.jsx';
 import Nosotros  from '@/pages/Nosotros.jsx';
@@ -167,7 +168,9 @@ export const router = createBrowserRouter([
     errorElement: <NotFound />,
     children: [
 
-      { index: true, element: <Home /> },
+      // Ruta raíz → LandingPage pública (Home queda en /home como fallback)
+      { index: true, element: <LandingPage /> },
+      { path: 'home',      element: <Home /> },
 
       // Adicionales
       { path: 'productos',  element: <Productos /> },
