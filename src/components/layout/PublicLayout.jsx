@@ -30,6 +30,7 @@ const SOLUCIONES_COL2 = [
   { label: 'Colposcopia', href: '/soluciones/colposcopia', icon: '🔎' },
   { label: 'Oftalmología', href: '/soluciones/oftalmologia', icon: '👁️' },
   { label: 'Veterinaria', href: '/soluciones/veterinaria', icon: '🐾' },
+  { label: 'Teleradiología', href: '/soluciones/teleradiologia', icon: '🌐', highlight: true },
 ];
 
 const FUNCIONALIDADES_BLOCKS = [
@@ -79,7 +80,7 @@ function SolucionesDropdown() {
             <div className="space-y-0.5">
               {SOLUCIONES_COL2.map(s => (
                 <Link key={s.href} to={s.href} onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-[#7A22FF]/10 hover:text-white">
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition hover:bg-[#7A22FF]/10 hover:text-white ${s.highlight ? 'text-[#CFA8FF] font-semibold border border-[#7A22FF]/20 bg-[#7A22FF]/5' : 'text-white/70'}`}>
                   <span className="text-base">{s.icon}</span>{s.label}
                 </Link>
               ))}

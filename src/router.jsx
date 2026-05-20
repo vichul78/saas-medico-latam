@@ -43,6 +43,7 @@ import Obstetrico  from '@/pages/specialties/Obstetrico.jsx';
 import Colposcopia from '@/pages/specialties/Colposcopia.jsx';
 import Oftalmologia from '@/pages/specialties/Oftalmologia.jsx';
 import Veterinaria from '@/pages/specialties/Veterinaria.jsx';
+import Teleradiologia from '@/pages/specialties/Teleradiologia.jsx';
 
 // ── Funcionalidades 2.1 — Tecnología avanzada ────────────────────────────────
 import IAAsistente       from '@/pages/features/tech/IAAsistente.jsx';
@@ -200,6 +201,7 @@ export const router = createBrowserRouter([
           { path: 'colposcopia',  element: <Colposcopia /> },
           { path: 'oftalmologia', element: <Oftalmologia /> },
           { path: 'veterinaria',  element: <Veterinaria /> },
+          { path: 'teleradiologia', element: <Teleradiologia /> },
         ],
       },
 

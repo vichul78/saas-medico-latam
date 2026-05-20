@@ -40,6 +40,7 @@ const SOLUCIONES_COL2 = [
   { label: 'Colposcopia', href: '/soluciones/colposcopia', icon: '🔎' },
   { label: 'Oftalmología', href: '/soluciones/oftalmologia', icon: '👁️' },
   { label: 'Veterinaria', href: '/soluciones/veterinaria', icon: '🐾' },
+  { label: 'Teleradiología', href: '/soluciones/teleradiologia', icon: '🌐', highlight: true },
 ];
 
 const FUNCIONALIDADES_BLOCKS = [
@@ -222,8 +223,7 @@ function SolucionesDropdown() {
             <div className="space-y-0.5">
               {SOLUCIONES_COL2.map(s => (
                 <Link key={s.href} to={s.href} onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-white/70
-                             transition hover:bg-[#7A22FF]/10 hover:text-white">
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition hover:bg-[#7A22FF]/10 hover:text-white ${s.highlight ? 'text-[#CFA8FF] font-semibold border border-[#7A22FF]/20 bg-[#7A22FF]/5' : 'text-white/70'}`}>
                   <span className="text-base">{s.icon}</span>{s.label}
                 </Link>
               ))}
@@ -489,6 +489,94 @@ function TabVisual({ tabId }) {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   TELERADIOLOGY NETWORK — 3-step flow (Carga → Asignación → Dictado IA)
+═══════════════════════════════════════════════════════════════════════════════ */
+function TeleradiologySection() {
+  const steps = [
+    {
+      step: '01',
+      title: 'Carga Segura',
+      desc: 'La clínica local sube el estudio DICOM al sistema en la nube. Encriptación end-to-end, cumplimiento HIPAA/LGPD.',
+      icon: '☁️',
+    },
+    {
+      step: '02',
+      title: 'Asignación Inteligente',
+      desc: 'El sistema notifica a la red nacional de especialistas y subespecialistas según la prioridad y modalidad del caso.',
+      icon: '🧠',
+    },
+    {
+      step: '03',
+      title: 'Dictado e Impresión IA',
+      desc: 'El especialista remoto analiza la imagen, usa el Copiloto IA para dictado por voz y emite el informe firmado digitalmente con código QR.',
+      icon: '✍️',
+    },
+  ];
+
+  return (
+    <section className="relative py-28 px-4 sm:px-8 overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#5B27B5] opacity-[0.04] blur-[180px]" />
+      <div className="relative z-10 mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-16 text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#7A22FF]/40 bg-[#7A22FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#CFA8FF]">
+            <span className="text-sm">🌐</span> Red Nacional de Diagnóstico
+          </div>
+          <h2 className="mb-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            Teleradiología:{' '}
+            <span className="bg-gradient-to-r from-[#7A22FF] to-[#CFA8FF] bg-clip-text text-transparent">
+              diagnóstico remoto
+            </span>
+          </h2>
+          <p className="mx-auto max-w-2xl text-base leading-relaxed text-white/45">
+            Conecta tu clínica con una red de radiólogos certificados en todo LatAm.
+            Estudios leídos en menos de 2 horas con firma digital y trazabilidad completa.
+          </p>
+        </div>
+
+        {/* 3-Step Flow */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {steps.map((s) => (
+            <div key={s.step}
+              className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.015] p-7 backdrop-blur-sm
+                         transition hover:border-[#7A22FF]/30 hover:bg-[#7A22FF]/[0.03]
+                         hover:shadow-[0_0_40px_-8px_rgba(122,34,255,0.2)]">
+              {/* Step number */}
+              <div className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-lg
+                              bg-[#7A22FF]/15 text-xs font-bold text-[#CFA8FF] ring-1 ring-[#7A22FF]/25">
+                {s.step}
+              </div>
+              {/* Icon */}
+              <div className="mb-3 text-3xl">{s.icon}</div>
+              {/* Content */}
+              <h3 className="mb-2 text-lg font-semibold text-white">{s.title}</h3>
+              <p className="text-sm leading-relaxed text-white/45">{s.desc}</p>
+              {/* Connector line (hidden on last) */}
+              {s.step !== '03' && (
+                <div aria-hidden className="pointer-events-none absolute right-0 top-1/2 hidden h-px w-6 -translate-y-1/2 translate-x-full bg-gradient-to-r from-[#7A22FF]/40 to-transparent md:block" />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-12 text-center">
+          <a href="/soluciones/teleradiologia"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#7A22FF]/50 bg-[#7A22FF]/10
+                       px-6 py-3 text-sm font-semibold text-white
+                       shadow-[0_0_24px_-6px_rgba(122,34,255,0.4)]
+                       transition hover:bg-[#7A22FF]/20 hover:shadow-[0_0_32px_-4px_rgba(122,34,255,0.6)]">
+            Conocer la Red de Teleradiología
+            <span className="text-[#CFA8FF]">→</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    FEATURES — Glassmorphism cards grid
 ═══════════════════════════════════════════════════════════════════════════════ */
 function FeaturesSection() {
@@ -581,6 +669,7 @@ export default function LandingPage() {
       <Navbar />
       <Hero />
       <ProductTabs />
+      <TeleradiologySection />
       <FeaturesSection />
       <StatsSection />
       <CTASection />
