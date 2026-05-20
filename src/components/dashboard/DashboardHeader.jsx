@@ -42,8 +42,8 @@ export default function DashboardHeader({
 
   const firstName   = profile?.first_name ?? '';
   const lastName    = profile?.last_name  ?? '';
-  const displayName = profile?.display_name
-    ?? `${firstName} ${lastName}`.trim()
+  const displayName = (profile?.display_name
+    ?? `${firstName} ${lastName}`.trim())
     || 'Usuario';
 
   const avatarVariant =
