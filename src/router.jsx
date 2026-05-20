@@ -70,6 +70,9 @@ import Integraciones    from '@/pages/features/custom/Integraciones.jsx';
 import ServiciosIncluidos from '@/pages/features/custom/ServiciosIncluidos.jsx';
 import ModeloPrecios    from '@/pages/features/custom/ModeloPrecios.jsx';
 
+// ── Funcionalidades — Catch-all dynamic page ──────────────────────────────────
+import FeaturePage from '@/pages/features/FeaturePage.jsx';
+
 /*
   ┌─────────────────────────────────────────────────────────────────────────────┐
   │  ÁRBOL DE RUTAS                                                             │
@@ -226,6 +229,8 @@ export const router = createBrowserRouter([
           { path: 'personalizado/integraciones',         element: <Integraciones /> },
           { path: 'personalizado/servicios-incluidos',   element: <ServiciosIncluidos /> },
           { path: 'personalizado/modelo-precios',        element: <ModeloPrecios /> },
+          // Catch-all: any /funcionalidades/:categoria/:item not matched above
+          { path: ':categoria/:item',                        element: <FeaturePage /> },
         ],
       },
 
