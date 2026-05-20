@@ -286,31 +286,46 @@ function FuncionalidadesDropdown() {
 function Hero() {
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-16">
-      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/4 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7A22FF] opacity-[0.04] blur-[160px]" />
-      <div aria-hidden className="pointer-events-none absolute right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full bg-[#5B27B5] opacity-[0.03] blur-[120px]" />
+      {/* Background Video */}
+      <video
+        src="/video-hero.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      />
+      {/* White luminous overlay */}
+      <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10" />
 
-      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#7A22FF]/40 bg-[#7A22FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#CFA8FF]">
+      {/* Ambient glows (above overlay) */}
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/4 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7A22FF] opacity-[0.04] blur-[160px] z-10" />
+      <div aria-hidden className="pointer-events-none absolute right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full bg-[#5B27B5] opacity-[0.03] blur-[120px] z-10" />
+
+      <div className="relative z-20 mb-6 inline-flex items-center gap-2 rounded-full border border-[#7A22FF]/40 bg-[#7A22FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#CFA8FF]">
         <Sparkles className="h-3.5 w-3.5" /> RIS/PACS en la nube para LatAm
       </div>
 
-      <h1 className="mb-6 max-w-4xl text-center text-5xl font-bold leading-[1.05] tracking-tight text-slate-900 sm:text-6xl lg:text-[72px]">
+      <h1 className="relative z-20 mb-6 max-w-4xl text-center text-5xl font-bold leading-[1.05] tracking-tight text-slate-900 sm:text-6xl lg:text-[72px]">
         El RIS/PACS en nube<br />
         <span className="bg-gradient-to-r from-[#7A22FF] via-[#9450FF] to-[#CFA8FF] bg-clip-text text-transparent">líder del mercado.</span>
       </h1>
 
-      <p className="mb-10 max-w-2xl text-center text-lg leading-relaxed text-slate-500">
+      <p className="relative z-20 mb-10 max-w-2xl text-center text-lg leading-relaxed text-slate-500">
         Gestiona estudios DICOM, pacientes y cobros multidivisa desde un solo sistema diseñado para clínicas y hospitales de Latinoamérica.
       </p>
 
       <Link to="/login"
-        className="mb-20 inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7A22FF] to-[#5B27B5]
+        className="relative z-20 mb-20 inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7A22FF] to-[#5B27B5]
                    px-10 py-4 text-base font-semibold text-white
                    shadow-[0_8px_40px_-8px_rgba(122,34,255,0.7)]
                    transition hover:brightness-110 hover:scale-[1.02] active:scale-[0.97]">
         <Zap className="h-5 w-5" /> Comenzar
       </Link>
 
-      <BrowserMockup />
+      <div className="relative z-20 w-full flex justify-center">
+        <BrowserMockup />
+      </div>
     </section>
   );
 }
