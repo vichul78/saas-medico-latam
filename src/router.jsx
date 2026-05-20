@@ -70,6 +70,9 @@ import Integraciones    from '@/pages/features/custom/Integraciones.jsx';
 import ServiciosIncluidos from '@/pages/features/custom/ServiciosIncluidos.jsx';
 import ModeloPrecios    from '@/pages/features/custom/ModeloPrecios.jsx';
 
+// ── Funcionalidades — Gestión Integral (product page) ─────────────────────────
+import GestionIntegral from '@/pages/features/management/GestionIntegral.jsx';
+
 // ── Funcionalidades — Catch-all dynamic page ──────────────────────────────────
 import FeaturePage from '@/pages/features/FeaturePage.jsx';
 
@@ -212,6 +215,8 @@ export const router = createBrowserRouter([
       {
         path: 'funcionalidades',
         children: [
+          // Página de producto: Gestión Integral
+          { path: 'gestion-integral',               element: <GestionIntegral /> },
           { path: 'tecnologia/ia-asistente',        element: <IAAsistente /> },
           { path: 'tecnologia/visor-dicom',          element: <VisorDicom /> },
           { path: 'tecnologia/envio-resultados',     element: <EnvioResultados /> },
