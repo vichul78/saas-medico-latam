@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 
 // ── Layouts ──────────────────────────────────────────────────────────────────
 import MainLayout      from '@/components/layout/MainLayout.jsx';
+import PublicLayout    from '@/components/layout/PublicLayout.jsx';
 import DashboardLayout from '@/components/dashboard/DashboardLayout.jsx';
 
 // ── Auth guards ───────────────────────────────────────────────────────────────
@@ -170,23 +171,21 @@ export const router = createBrowserRouter([
     errorElement: <NotFound />,
   },
 
-  // ── 4. MainLayout — sitio público (marketing) ────────────────────────────
-  //    Layout route SIN path: las rutas hijas se resuelven contra la URL
-  //    como si el layout no estuviera, pero comparten su chrome (sidebar).
+  // ── 4. PublicLayout — páginas públicas SIN sidebar ──────────────────────
+  //    Solo Navbar superior liquid-glass + Outlet. Cero barra lateral.
+  //    Usado para: /soluciones/*, /funcionalidades/*, /productos, /nosotros
   {
-    element:      <MainLayout />,
+    element:      <PublicLayout />,
     errorElement: <NotFound />,
     children: [
 
-      // Home queda accesible en /home (la raíz la ocupa LandingPage)
-      { path: 'home',      element: <Home /> },
-
-      // Adicionales
+      // Marketing pages
+      { path: 'home',       element: <Home /> },
       { path: 'productos',  element: <Productos /> },
       { path: 'nosotros',   element: <Nosotros /> },
       { path: 'contratar',  element: <Contratar /> },
 
-      // 1. Soluciones por especialidades
+      // 1. Soluciones por especialidades (AISLADAS del sidebar)
       {
         path: 'soluciones',
         children: [
@@ -204,30 +203,23 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // 2. Funcionalidades
+      // 2. Funcionalidades (AISLADAS del sidebar)
       {
         path: 'funcionalidades',
         children: [
-          // 2.1 Tecnología avanzada
           { path: 'tecnologia/ia-asistente',        element: <IAAsistente /> },
           { path: 'tecnologia/visor-dicom',          element: <VisorDicom /> },
           { path: 'tecnologia/envio-resultados',     element: <EnvioResultados /> },
           { path: 'tecnologia/compatibilidad-total', element: <CompatibilidadTotal /> },
-
-          // 2.2 Gestión integral
           { path: 'gestion/almacenamiento-seguro',   element: <AlmacenamientoSeguro /> },
           { path: 'gestion/estudios',                element: <GestionEstudios /> },
           { path: 'gestion/citas-agendas',           element: <GestionCitas /> },
           { path: 'gestion/documentacion',           element: <Documentacion /> },
           { path: 'gestion/facturacion-cobros',      element: <FacturacionCobros /> },
-
-          // 2.3 Fácil de usar
           { path: 'facil-uso/portal-pacientes',          element: <PortalPacientes /> },
           { path: 'facil-uso/portal-medicos',            element: <PortalMedicos /> },
           { path: 'facil-uso/recordatorios-citas',       element: <RecordatoriosCitas /> },
           { path: 'facil-uso/reduccion-inasistencias',   element: <ReduccionInasistencias /> },
-
-          // 2.4 Personalizado
           { path: 'personalizado/adaptacion-total',      element: <AdaptacionTotal /> },
           { path: 'personalizado/integraciones',         element: <Integraciones /> },
           { path: 'personalizado/servicios-incluidos',   element: <ServiciosIncluidos /> },
