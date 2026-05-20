@@ -161,15 +161,24 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // ── 3. MainLayout — sitio público (marketing + landing) ──────────────────
+  // ── 3. LandingPage — pública, SIN layout interno (sin sidebar) ───────────
+  //    Se monta en la raíz como ruta independiente para que NO herede
+  //    el MainLayout (que aporta header lateral + sidebar de marketing).
   {
     path:         '/',
+    element:      <LandingPage />,
+    errorElement: <NotFound />,
+  },
+
+  // ── 4. MainLayout — sitio público (marketing) ────────────────────────────
+  //    Layout route SIN path: las rutas hijas se resuelven contra la URL
+  //    como si el layout no estuviera, pero comparten su chrome (sidebar).
+  {
     element:      <MainLayout />,
     errorElement: <NotFound />,
     children: [
 
-      // Ruta raíz → LandingPage pública (Home queda en /home como fallback)
-      { index: true, element: <LandingPage /> },
+      // Home queda accesible en /home (la raíz la ocupa LandingPage)
       { path: 'home',      element: <Home /> },
 
       // Adicionales
