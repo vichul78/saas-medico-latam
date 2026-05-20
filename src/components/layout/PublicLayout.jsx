@@ -60,19 +60,19 @@ function SolucionesDropdown() {
   return (
     <div ref={ref} className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
       <button type="button" onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-white/60 transition hover:text-white">
+        className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-slate-500 transition hover:text-slate-900">
         Soluciones <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       <div className={`absolute left-1/2 top-full z-50 mt-3 -translate-x-1/2 transition-all duration-200
         ${open ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'}`}>
-        <div className="w-[520px] rounded-2xl border border-white/[0.08] bg-black/95 backdrop-blur-2xl p-5
-                        shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9),0_0_0_1px_rgba(122,34,255,0.08)]">
+        <div className="w-[520px] rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-2xl p-5
+                        shadow-[0_24px_64px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(122,34,255,0.08)]">
           <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#9450FF]">11 Especialidades Clínicas</p>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1">
             <div className="space-y-0.5">
               {SOLUCIONES_COL1.map(s => (
                 <Link key={s.href} to={s.href} onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-[#7A22FF]/10 hover:text-white">
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-[#7A22FF]/10 hover:text-slate-900">
                   <span className="text-base">{s.icon}</span>{s.label}
                 </Link>
               ))}
@@ -80,7 +80,7 @@ function SolucionesDropdown() {
             <div className="space-y-0.5">
               {SOLUCIONES_COL2.map(s => (
                 <Link key={s.href} to={s.href} onClick={() => setOpen(false)}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition hover:bg-[#7A22FF]/10 hover:text-white ${s.highlight ? 'text-[#CFA8FF] font-semibold border border-[#7A22FF]/20 bg-[#7A22FF]/5' : 'text-white/70'}`}>
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition hover:bg-[#7A22FF]/10 hover:text-slate-900 ${s.highlight ? 'text-[#CFA8FF] font-semibold border border-[#7A22FF]/20 bg-[#7A22FF]/5' : 'text-slate-700'}`}>
                   <span className="text-base">{s.icon}</span>{s.label}
                 </Link>
               ))}
@@ -105,13 +105,13 @@ function FuncionalidadesDropdown() {
   return (
     <div ref={ref} className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
       <button type="button" onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-white/60 transition hover:text-white">
+        className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-slate-500 transition hover:text-slate-900">
         Funcionalidades <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       <div className={`absolute left-1/2 top-full z-50 mt-3 -translate-x-1/2 transition-all duration-200
         ${open ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'}`}>
-        <div className="w-[480px] rounded-2xl border border-white/[0.08] bg-black/95 backdrop-blur-2xl p-5
-                        shadow-[0_24px_64px_-12px_rgba(0,0,0,0.9),0_0_0_1px_rgba(122,34,255,0.08)]">
+        <div className="w-[480px] rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-2xl p-5
+                        shadow-[0_24px_64px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(122,34,255,0.08)]">
           <div className="grid grid-cols-2 gap-6">
             {FUNCIONALIDADES_BLOCKS.map(block => (
               <div key={block.title}>
@@ -119,7 +119,7 @@ function FuncionalidadesDropdown() {
                 <div className="space-y-0.5">
                   {block.items.map(item => (
                     <Link key={item.href} to={item.href} onClick={() => setOpen(false)}
-                      className="block rounded-lg px-3 py-1.5 text-sm text-white/70 transition hover:bg-[#7A22FF]/10 hover:text-white">
+                      className="block rounded-lg px-3 py-1.5 text-sm text-slate-700 transition hover:bg-[#7A22FF]/10 hover:text-slate-900">
                       {item.label}
                     </Link>
                   ))}
@@ -148,11 +148,11 @@ export default function PublicLayout() {
   }, []);
 
   return (
-    <div className="w-full min-h-screen bg-black text-white" style={{ fontFamily: 'Geist, Inter, system-ui, sans-serif' }}>
+    <div className="w-full min-h-screen bg-slate-50 text-slate-900" style={{ fontFamily: 'Geist, Inter, system-ui, sans-serif' }}>
       {/* ── Navbar Fixed Top ── */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300
-          ${scrolled ? 'bg-black/70 shadow-[0_4px_32px_-8px_rgba(122,34,255,0.12)]' : 'bg-black/30'}`}
+          ${scrolled ? 'bg-white/80 shadow-[0_4px_32px_-8px_rgba(122,34,255,0.08)]' : 'bg-white/60'}`}
         style={{ backdropFilter: 'blur(24px) saturate(1.8)', WebkitBackdropFilter: 'blur(24px) saturate(1.8)' }}
       >
         <div className="h-px bg-gradient-to-r from-transparent via-[#7A22FF]/40 to-transparent" />
@@ -166,7 +166,7 @@ export default function PublicLayout() {
                             transition group-hover:shadow-[0_0_32px_-2px_rgba(122,34,255,1)]">
               <Stethoscope className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">
+            <span className="text-xl font-bold tracking-tight text-slate-900">
               MediCo<span className="text-[#9450FF]"> LatAm</span>
             </span>
           </Link>
@@ -175,8 +175,8 @@ export default function PublicLayout() {
           <nav className="hidden items-center gap-1 lg:flex">
             <SolucionesDropdown />
             <FuncionalidadesDropdown />
-            <Link to="/productos" className="rounded-lg px-4 py-2 text-sm font-medium text-white/60 transition hover:text-white">Productos</Link>
-            <Link to="/nosotros" className="rounded-lg px-4 py-2 text-sm font-medium text-white/60 transition hover:text-white">Nosotros</Link>
+            <Link to="/productos" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 transition hover:text-slate-900">Productos</Link>
+            <Link to="/nosotros" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 transition hover:text-slate-900">Nosotros</Link>
           </nav>
 
           {/* Right CTA */}
@@ -192,7 +192,7 @@ export default function PublicLayout() {
 
           {/* Mobile hamburger */}
           <button type="button" onClick={() => setMobileOpen(v => !v)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] text-white/70 lg:hidden" aria-label="Menú">
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 lg:hidden" aria-label="Menú">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
@@ -200,13 +200,13 @@ export default function PublicLayout() {
         {/* Mobile menu */}
         <div className={`overflow-hidden transition-all duration-300 lg:hidden
                          ${mobileOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="space-y-1 border-t border-white/[0.06] bg-black/95 px-5 pb-6 pt-4 backdrop-blur-xl">
+          <div className="space-y-1 border-t border-slate-200 bg-white/95 px-5 pb-6 pt-4 backdrop-blur-xl">
             <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#9450FF]">Soluciones</p>
             {[...SOLUCIONES_COL1, ...SOLUCIONES_COL2].slice(0, 6).map(s => (
               <Link key={s.href} to={s.href} onClick={() => setMobileOpen(false)}
-                className="block rounded-lg px-4 py-2 text-sm text-white/70 hover:text-white">{s.label}</Link>
+                className="block rounded-lg px-4 py-2 text-sm text-slate-700 hover:text-slate-900">{s.label}</Link>
             ))}
-            <div className="my-3 h-px bg-white/[0.06]" />
+            <div className="my-3 h-px bg-slate-200" />
             <Link to="/login" onClick={() => setMobileOpen(false)}
               className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7A22FF] to-[#5B27B5] px-4 py-3 text-sm font-semibold text-white">
               Iniciar Sesión
