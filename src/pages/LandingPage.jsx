@@ -288,7 +288,7 @@ function Hero() {
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-16">
       {/* Background Video */}
       <video
-        src="/video-hero.mp4"
+        src="/mp_.mp4"
         autoPlay
         muted
         loop
