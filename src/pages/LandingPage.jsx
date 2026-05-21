@@ -693,12 +693,15 @@ export default function LandingPage() {
             </>
           }
         >
-          <img
-            src="https://images.unsplash.com/photo-1551076805-e18690c5e561?q=80&w=2070&auto=format&fit=crop"
-            alt="Dashboard Médico"
-            className="mx-auto rounded-2xl object-cover h-full w-full object-center"
-            draggable={false}
-          />
+         <video 
+  src="https://res.cloudinary.com/dwgcidtkp/video/upload/v1779383703/creame_un_radiologia_en_video_fbgndm.mp4" 
+  autoPlay 
+  muted 
+  loop 
+  playsInline
+  className="w-full h-full object-cover rounded-xl"
+  style={{ pointerEvents: 'none' }}
+/>
         </ContainerScroll>
       </div>
       <ProductTabs />
