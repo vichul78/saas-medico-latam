@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { ContainerScroll } from '../components/ui/container-scroll-animation';
 import { ModernFeatures } from '../components/ui/modern-features';
+import { SpecialistsCarousel } from '../components/ui/specialists-carousel';
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LandingPage — Enterprise Redesign (Edenmed Layout Reference)
@@ -706,6 +707,7 @@ export default function LandingPage() {
         </ContainerScroll>
       </div>
       <ModernFeatures />
+      <SpecialistsCarousel />
       <ProductTabs />
       <TeleradiologySection />
       <FeaturesSection />
