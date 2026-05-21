@@ -5,6 +5,7 @@ import {
   ArrowRight, Sparkles, Zap, CheckCircle2, BarChart3,
   ShieldCheck, Globe, CalendarCheck, FileImage, Menu, X,
 } from 'lucide-react';
+import { ContainerScroll } from '../components/ui/container-scroll-animation';
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LandingPage — Enterprise Redesign (Edenmed Layout Reference)
@@ -678,6 +679,28 @@ export default function LandingPage() {
     <div className="w-full min-h-screen bg-slate-50 text-slate-900" style={{ fontFamily: 'Geist, Inter, system-ui, sans-serif' }}>
       <Navbar />
       <Hero />
+      {/* --- SECCIÓN DE ANIMACIÓN SCROLL --- */}
+      <div className="flex flex-col overflow-hidden bg-white">
+        <ContainerScroll
+          titleComponent={
+            <>
+              <h2 className="text-4xl font-semibold text-slate-900">
+                Potencia tu clínica con <br />
+                <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none text-[#7A22FF]">
+                  Gestión Inteligente
+                </span>
+              </h2>
+            </>
+          }
+        >
+          <img
+            src="https://images.unsplash.com/photo-1551076805-e18690c5e561?q=80&w=2070&auto=format&fit=crop"
+            alt="Dashboard Médico"
+            className="mx-auto rounded-2xl object-cover h-full w-full object-center"
+            draggable={false}
+          />
+        </ContainerScroll>
+      </div>
       <ProductTabs />
       <TeleradiologySection />
       <FeaturesSection />
