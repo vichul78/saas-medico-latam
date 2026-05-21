@@ -299,10 +299,7 @@ function Hero() {
   className="absolute inset-0 w-full h-full object-cover z-0"
   style={{ pointerEvents: 'none' }}
 />
-    {/* Borra esto completo, desde el comentario hasta el cierre del div */}
-{/* White luminous overlay */}
-<div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10" />
-
+  
       <div className="relative z-20 mb-6 inline-flex items-center gap-2 rounded-full border border-[#7A22FF]/40 bg-[#7A22FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#CFA8FF]">
         <Sparkles className="h-3.5 w-3.5" /> RIS/PACS en la nube para LatAm
       </div>
