@@ -287,14 +287,15 @@ function Hero() {
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-16">
       {/* Background Video */}
-      <video
-        src="https://drive.google.com/uc?export=download&id=1DRUkxTd2ggXCa2SclX5bVXsFPcR2-VcM"
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      />
+     <video 
+  src="https://res.cloudinary.com/dtw8h8a2t/video/upload/v1716238622/video-hero_mp4.mp4" 
+  autoPlay 
+  muted 
+  loop 
+  playsInline
+  className="absolute inset-0 w-full h-full object-cover z-0"
+  style={{ pointerEvents: 'none' }}
+/>
       {/* White luminous overlay */}
       <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10" />
 
