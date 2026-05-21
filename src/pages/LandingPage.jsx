@@ -320,9 +320,7 @@ function Hero() {
         <Zap className="h-5 w-5" /> Comenzar
       </Link>
 
-      <div className="relative z-20 w-full flex justify-center">
-        <BrowserMockup />
-      </div>
+      
     </section>
   );
 }
