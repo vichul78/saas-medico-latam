@@ -285,7 +285,7 @@ function FuncionalidadesDropdown() {
 ═══════════════════════════════════════════════════════════════════════════════ */
 function Hero() {
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-16">
+   <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-16">
       {/* Background Video */}
    <video 
   src="https://res.cloudinary.com/dwgcidtkp/video/upload/v1779308888/mp__tyrat4.mp4" 
@@ -296,12 +296,8 @@ function Hero() {
   className="absolute inset-0 w-full h-full object-cover z-0"
   style={{ pointerEvents: 'none' }}
 />
-      {/* White luminous overlay */}
-      <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10" />
-
-      {/* Ambient glows (above overlay) */}
-      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/4 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7A22FF] opacity-[0.04] blur-[160px] z-10" />
-      <div aria-hidden className="pointer-events-none absolute right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full bg-[#5B27B5] opacity-[0.03] blur-[120px] z-10" />
+     {/* White luminous overlay - Capa real para legibilidad y elegancia */}
+<div className="absolute inset-0 bg-white/30 backdrop-blur-[1px] z-10" />
 
       <div className="relative z-20 mb-6 inline-flex items-center gap-2 rounded-full border border-[#7A22FF]/40 bg-[#7A22FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#CFA8FF]">
         <Sparkles className="h-3.5 w-3.5" /> RIS/PACS en la nube para LatAm
