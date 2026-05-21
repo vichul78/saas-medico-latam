@@ -6,6 +6,7 @@ import {
   ShieldCheck, Globe, CalendarCheck, FileImage, Menu, X,
 } from 'lucide-react';
 import { ContainerScroll } from '../components/ui/container-scroll-animation';
+import { ModernFeatures } from '../components/ui/modern-features';
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LandingPage — Enterprise Redesign (Edenmed Layout Reference)
@@ -704,6 +705,7 @@ export default function LandingPage() {
 />
         </ContainerScroll>
       </div>
+      <ModernFeatures />
       <ProductTabs />
       <TeleradiologySection />
       <FeaturesSection />
