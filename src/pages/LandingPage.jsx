@@ -8,6 +8,7 @@ import {
 import { ContainerScroll } from '../components/ui/container-scroll-animation';
 import { ModernFeatures } from '../components/ui/modern-features';
 import { SpecialistsCarousel } from '../components/ui/specialists-carousel';
+import { ContainerTextFlip } from '../components/ui/container-text-flip';
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LandingPage — Enterprise Redesign (Edenmed Layout Reference)
@@ -304,40 +305,13 @@ function Hero() {
         <Sparkles className="h-3.5 w-3.5" /> RIS/PACS en la nube para LatAm
       </div>
 
-      import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-
-export const ContainerTextFlip = ({ words, className }) => {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prevIndex) => (prevIndex + 1) % words.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [words.length]);
-
-  return (
-    <span className={`inline-block relative ${className}`}>
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={words[index]}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="inline-block absolute left-0 top-0 whitespace-nowrap"
-        >
-          {words[index]}
-        </motion.span>
-      </AnimatePresence>
-      <span className="opacity-0 pointer-events-none whitespace-nowrap">
-        {/* Invisible span to maintain width based on the longest word */}
-        {words.reduce((a, b) => (a.length > b.length ? a : b))}
-      </span>
-    </span>
-  );
-};
+<h1 className="relative z-20 mb-6 max-w-4xl text-center text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-7xl drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+  El RIS/PACS <br />
+  <ContainerTextFlip 
+    words={["más moderno", "más rápido", "con IA", "en la nube"]} 
+    className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A22FF] to-[#9450FF]"
+  />
+</h1>
 
       <p className="relative z-20 mb-10 max-w-2xl text-center text-lg leading-relaxed text-slate-500">
         Gestiona estudios DICOM, pacientes y cobros multidivisa desde un solo sistema diseñado para clínicas y hospitales de Latinoamérica.
