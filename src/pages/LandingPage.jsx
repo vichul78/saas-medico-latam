@@ -285,47 +285,51 @@ function FuncionalidadesDropdown() {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   HERO — Centered title + "Comenzar" CTA + glassmorphism browser mockup
+   HERO — 2-column grid: text-left content + BrowserMockup visual
+   Background: deep black with electric purple ambient glow (no full-screen video)
 ═══════════════════════════════════════════════════════════════════════════════ */
 function Hero() {
   return (
-   <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-16">
-      {/* Background Video */}
-   <video 
-  src="https://res.cloudinary.com/dwgcidtkp/video/upload/v1779308888/mp__tyrat4.mp4" 
-  autoPlay 
-  muted 
-  loop 
-  playsInline
-  className="absolute inset-0 w-full h-full object-cover z-0"
-  style={{ pointerEvents: 'none' }}
-/>
-  
-      <div className="relative z-20 mb-6 inline-flex items-center gap-2 rounded-full border border-[#7A22FF]/40 bg-[#7A22FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#CFA8FF]">
-        <Sparkles className="h-3.5 w-3.5" /> RIS/PACS en la nube para LatAm
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-[#0a0010] text-white">
+      {/* Ambient electric-purple glow (replaces full-screen video overlay) */}
+      <div aria-hidden className="pointer-events-none absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-[#7A22FF] opacity-20 blur-[140px]" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-[#5B27B5] opacity-[0.15] blur-[160px]" />
+
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 py-20 grid md:grid-cols-2 gap-16 items-center">
+        {/* ── Left column: content (text-left, F-pattern) ── */}
+        <div className="text-left">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#7A22FF]/40 bg-[#7A22FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#CFA8FF]">
+            <Sparkles className="h-3.5 w-3.5" /> RIS/PACS en la nube para LatAm
+          </div>
+
+          <h1 className="text-left text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-7xl drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+            El RIS/PACS <br />
+            <ContainerTextFlip
+              words={["más moderno", "más rápido", "con IA", "en la nube"]}
+              className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A22FF] to-[#9450FF]"
+            />
+          </h1>
+
+          <p className="text-xl text-slate-400 max-w-lg mt-6">
+            Gestiona estudios DICOM, pacientes y cobros multidivisa desde un solo sistema diseñado para clínicas y hospitales de Latinoamérica.
+          </p>
+
+          <div className="mt-8">
+            <Link to="/login"
+              className="inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7A22FF] to-[#5B27B5]
+                         px-10 py-4 text-base font-semibold text-white
+                         shadow-[0_8px_40px_-8px_rgba(122,34,255,0.7)]
+                         transition hover:brightness-110 hover:scale-[1.02] active:scale-[0.97]">
+              <Zap className="h-5 w-5" /> Comenzar
+            </Link>
+          </div>
+        </div>
+
+        {/* ── Right column: visual (grid controls width via w-full) ── */}
+        <div className="w-full">
+          <BrowserMockup />
+        </div>
       </div>
-
-<h1 className="relative z-20 mb-6 max-w-4xl text-center text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-7xl drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-  El RIS/PACS <br />
-  <ContainerTextFlip 
-    words={["más moderno", "más rápido", "con IA", "en la nube"]} 
-    className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A22FF] to-[#9450FF]"
-  />
-</h1>
-
-      <p className="relative z-20 mb-10 max-w-2xl text-center text-lg leading-relaxed text-slate-500">
-        Gestiona estudios DICOM, pacientes y cobros multidivisa desde un solo sistema diseñado para clínicas y hospitales de Latinoamérica.
-      </p>
-
-      <Link to="/login"
-        className="relative z-20 mb-20 inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7A22FF] to-[#5B27B5]
-                   px-10 py-4 text-base font-semibold text-white
-                   shadow-[0_8px_40px_-8px_rgba(122,34,255,0.7)]
-                   transition hover:brightness-110 hover:scale-[1.02] active:scale-[0.97]">
-        <Zap className="h-5 w-5" /> Comenzar
-      </Link>
-
-      
     </section>
   );
 }
@@ -334,7 +338,7 @@ function Hero() {
 /* ── Browser Mockup (glassmorphism window simulating DICOM viewer) ── */
 function BrowserMockup() {
   return (
-    <div className="w-full max-w-6xl">
+    <div className="w-full">
       <div className="rounded-2xl border border-slate-200 bg-white backdrop-blur-xl
                       shadow-[0_32px_80px_-16px_rgba(0,0,0,0.08),0_0_0_1px_rgba(122,34,255,0.1)] overflow-hidden">
         <div className="flex h-10 items-center gap-2.5 border-b border-slate-200 bg-slate-100 px-4">
