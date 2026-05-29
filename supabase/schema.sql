@@ -148,52 +148,43 @@ CREATE TRIGGER trg_pacientes_updated_at
 -- 6. ESTUDIOS  (imágenes / pruebas asociadas a un paciente)
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS estudios (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  clinica_id       UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
-  paciente_id      UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
-  medico_id        UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- radiólogo asignado
-  medico_referente UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-  modalidad        TEXT,                    -- CT | MR | DX | US | ECG …
-  descripcion      TEXT,
-  estado           estudio_estado NOT NULL DEFAULT 'recibido',
-  prioridad        TEXT NOT NULL DEFAULT 'rutina',  -- rutina | urgente | stat
-  accession_number TEXT UNIQUE,             -- nº de acceso DICOM / RIS
-  dicom_study_uid  TEXT UNIQUE,             -- 0020,000D Study Instance UID
-  storage_path     TEXT,                    -- ruta en Supabase Storage
-  fecha_estudio    DATE NOT NULL DEFAULT CURRENT_DATE,
-  metadata         JSONB DEFAULT '{}',
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id        UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  paciente_id       UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  medico_id         UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- radiólogo asignado
+  tipo              TEXT NOT NULL,                 -- CT | MR | DX | US | ECG | ecografía …
+  fecha             DATE NOT NULL DEFAULT CURRENT_DATE,
+  archivo_dicom_url TEXT,                          -- URL del DICOM en Supabase Storage
+  estado            estudio_estado NOT NULL DEFAULT 'recibido',
+  metadata          JSONB DEFAULT '{}',
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_estudios_clinica  ON estudios(clinica_id);
 CREATE INDEX IF NOT EXISTS idx_estudios_paciente ON estudios(paciente_id);
 CREATE INDEX IF NOT EXISTS idx_estudios_estado   ON estudios(estado);
-CREATE INDEX IF NOT EXISTS idx_estudios_fecha    ON estudios(fecha_estudio DESC);
+CREATE INDEX IF NOT EXISTS idx_estudios_fecha    ON estudios(fecha DESC);
 
 CREATE TRIGGER trg_estudios_updated_at
   BEFORE UPDATE ON estudios
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- ─────────────────────────────────────────────
--- 7. INFORMES  (reporte clínico firmado de un estudio)
+-- 7. INFORMES  (reporte clínico de un estudio; puede ser generado por IA)
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS informes (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  clinica_id    UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
-  estudio_id    UUID NOT NULL REFERENCES estudios(id) ON DELETE CASCADE,
-  medico_id     UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- autor del informe
-  titulo        TEXT,
-  hallazgos     TEXT,                     -- cuerpo del informe
-  impresion     TEXT,                     -- impresión diagnóstica / conclusión
-  contenido_html TEXT,                    -- versión renderizada / firmada
-  estado        informe_estado NOT NULL DEFAULT 'borrador',
-  cie10_codes   TEXT[],                   -- diagnósticos CIE-10
-  firmado_at    TIMESTAMPTZ,
-  firmado_por   UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-  metadata      JSONB DEFAULT '{}',
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id      UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  estudio_id      UUID NOT NULL REFERENCES estudios(id) ON DELETE CASCADE,
+  medico_id       UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- autor / responsable
+  texto           TEXT,                              -- cuerpo del informe
+  estado          informe_estado NOT NULL DEFAULT 'borrador',
+  generado_por_ia BOOLEAN NOT NULL DEFAULT FALSE,    -- ¿lo generó el copiloto IA?
+  firmado_at      TIMESTAMPTZ,
+  metadata        JSONB DEFAULT '{}',
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_informes_clinica ON informes(clinica_id);
