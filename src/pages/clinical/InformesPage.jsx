@@ -315,9 +315,9 @@ function InformeFormModal({ informe, onSave, onFirmar, onClose }) {
   const [formError,     setFormError]     = useState(null);
   const [localInforme,  setLocalInforme]  = useState(informe);
 
-  const { estudios, loading: loadingEstudios } = useEstudios({ pageSize: 200 });
-
   const isEditing = !!informe;
+
+  const { estudios, loading: loadingEstudios } = useEstudios({ pageSize: 200, enabled: !isEditing });
 
   const selectedEstudio = estudios.find(e => e.id === estudioId) || null;
 
@@ -493,10 +493,10 @@ function InformeFormModal({ informe, onSave, onFirmar, onClose }) {
               value={estado}
               onChange={e => setEstado(e.target.value)}
               className="modal-input"
+              disabled={isFirmado}
             >
               <option value="borrador" className="bg-clinical-900 text-white">Borrador</option>
               <option value="rectificado" className="bg-clinical-900 text-white">Revisado</option>
-              <option value="firmado" className="bg-clinical-900 text-white">Firmado</option>
             </select>
           </div>
 

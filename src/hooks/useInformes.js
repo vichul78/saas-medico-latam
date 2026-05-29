@@ -141,6 +141,8 @@ export function useInformes({ search = '', estado = '', pageSize = 25 } = {}) {
   }, [clinicaId, profile, fetchInformes]);
 
   const updateInforme = useCallback(async (id, data) => {
+    if (!clinicaId) return { data: null, error: 'Sin clinica asociada' };
+
     const updates = {};
     if (data.texto !== undefined) updates.texto = data.texto;
     if (data.estado !== undefined) updates.estado = data.estado;
@@ -150,6 +152,7 @@ export function useInformes({ search = '', estado = '', pageSize = 25 } = {}) {
       .from('informes')
       .update(updates)
       .eq('id', id)
+      .eq('clinica_id', clinicaId)
       .select()
       .single();
 
@@ -160,13 +163,16 @@ export function useInformes({ search = '', estado = '', pageSize = 25 } = {}) {
 
     fetchInformes();
     return { data: updated, error: null };
-  }, [fetchInformes]);
+  }, [clinicaId, fetchInformes]);
 
   const firmarInforme = useCallback(async (id) => {
+    if (!clinicaId) return { data: null, error: 'Sin clinica asociada' };
+
     const { data: updated, error: sbError } = await supabase
       .from('informes')
       .update({ estado: 'firmado', firmado_at: new Date().toISOString() })
       .eq('id', id)
+      .eq('clinica_id', clinicaId)
       .select()
       .single();
 
@@ -177,7 +183,7 @@ export function useInformes({ search = '', estado = '', pageSize = 25 } = {}) {
 
     fetchInformes();
     return { data: updated, error: null };
-  }, [fetchInformes]);
+  }, [clinicaId, fetchInformes]);
 
   return {
     informes,

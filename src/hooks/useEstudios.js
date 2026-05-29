@@ -39,12 +39,12 @@ const ESTADO_UI_TO_DB = {
   cancelado:  ['cancelado'],
 };
 
-export function useEstudios({ search = '', estado = '', pageSize = 25 } = {}) {
+export function useEstudios({ search = '', estado = '', pageSize = 25, enabled = true } = {}) {
   const { profile } = useAuth();
   const clinicaId = profile?.organization_id ?? null;
 
   const [estudios,   setEstudios]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
+  const [loading,    setLoading]    = useState(enabled);
   const [error,      setError]      = useState(null);
   const [totalCount, setTotalCount] = useState(0);
   const [page,       setPage]       = useState(1);
@@ -52,7 +52,7 @@ export function useEstudios({ search = '', estado = '', pageSize = 25 } = {}) {
   const abortRef = useRef(false);
 
   const fetchEstudios = useCallback(async () => {
-    if (!clinicaId) return;
+    if (!clinicaId || !enabled) return;
 
     abortRef.current = false;
     setLoading(true);
@@ -108,7 +108,7 @@ export function useEstudios({ search = '', estado = '', pageSize = 25 } = {}) {
     } finally {
       if (!abortRef.current) setLoading(false);
     }
-  }, [clinicaId, search, estado, page, pageSize]);
+  }, [clinicaId, search, estado, page, pageSize, enabled]);
 
   useEffect(() => {
     setPage(1);
