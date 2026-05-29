@@ -31,6 +31,7 @@ import PacienteDashboard from '@/pages/dashboards/PacienteDashboard.jsx';
 import PatientsPage     from '@/pages/clinical/PatientsPage.jsx';
 import AppointmentsPage from '@/pages/clinical/AppointmentsPage.jsx';
 import EstudiosPage     from '@/pages/clinical/EstudiosPage.jsx';
+import InformesPage     from '@/pages/clinical/InformesPage.jsx';
 import VisorDicomPage   from '@/pages/features/tech/VisorDicom.jsx';
 import BillingPage      from '@/pages/billing/BillingPage.jsx';
 
@@ -171,6 +172,7 @@ export const router = createBrowserRouter([
           { path: 'citas',     element: <AppointmentsPage /> },
           { path: 'visor',     element: <VisorDicomPage /> },
           { path: 'estudios',  element: <EstudiosPage /> },
+          { path: 'informes',  element: <InformesPage /> },
         ],
       },
 
