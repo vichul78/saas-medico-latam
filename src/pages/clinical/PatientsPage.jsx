@@ -1,24 +1,25 @@
 import { useState, useCallback, useRef } from 'react';
 import { usePatients } from '@/hooks/usePatients.js';
 import PatientDrawer   from '@/components/clinical/PatientDrawer.jsx';
-import Badge           from '@/components/common/Badge.jsx';
 import Skeleton        from '@/components/common/Skeleton.jsx';
+import { useAuth }     from '@/hooks/useAuth.js';
 
 /*
   PatientsPage — listado de pacientes con:
-    • Búsqueda en tiempo real (debounce 300 ms)
-    • Tabla densa estilo clínico oscuro
-    • Avatares de iniciales sin vello facial
-    • Skeleton mientras carga Supabase
-    • Clic en fila → PatientDrawer desde la derecha (sin cambio de ruta)
-    • Paginación numérica
-    • CERO tonos verdes
+    - Busqueda en tiempo real (debounce 300 ms)
+    - Tabla densa estilo clinico oscuro
+    - Modal form para crear/editar paciente
+    - Paginacion numerica
+    - PatientDrawer al hacer clic en la fila
 */
 
 export default function PatientsPage() {
+  const { profile } = useAuth();
   const [search,   setSearch]   = useState('');
-  const [query,    setQuery]    = useState('');        // valor debounced enviado al hook
-  const [selected, setSelected] = useState(null);     // patientId del Drawer
+  const [query,    setQuery]    = useState('');
+  const [selected, setSelected] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing,  setEditing]  = useState(null);
   const debounceRef = useRef(null);
 
   const handleSearch = useCallback((val) => {
@@ -27,17 +28,47 @@ export default function PatientsPage() {
     debounceRef.current = setTimeout(() => setQuery(val), 300);
   }, []);
 
-  const { patients, loading, error, totalCount, page, setPage, pageSize, refresh } =
-    usePatients({ search: query });
+  const {
+    patients, loading, error, totalCount, page, setPage, pageSize,
+    refresh, createPatient, updatePatient,
+  } = usePatients({ search: query });
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
+  const openNew = () => {
+    setEditing(null);
+    setFormOpen(true);
+  };
+
+  const openEdit = (patient) => {
+    setEditing(patient);
+    setFormOpen(true);
+  };
+
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditing(null);
+  };
+
+  const handleSave = async (data) => {
+    let result;
+    if (editing) {
+      result = await updatePatient(editing.id, data);
+    } else {
+      result = await createPatient(data);
+    }
+    if (!result.error) {
+      closeForm();
+    }
+    return result;
+  };
+
   return (
     <>
-      {/* ── Cabecera de módulo ── */}
+      {/* Cabecera de modulo */}
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-electric-400">
-          Módulo clínico
+          Modulo clinico
         </p>
         <h1 className="font-display text-3xl font-bold text-white">
           Pacientes
@@ -45,11 +76,11 @@ export default function PatientsPage() {
         <p className="mt-1 text-sm text-clinical-400">
           {totalCount > 0
             ? `${totalCount.toLocaleString('es')} pacientes registrados`
-            : 'Gestión del expediente clínico por paciente'}
+            : 'Gestion del expediente clinico por paciente'}
         </p>
       </div>
 
-      {/* ── Barra de acciones ── */}
+      {/* Barra de acciones */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Buscador */}
         <div className="relative w-full max-w-sm">
@@ -60,7 +91,7 @@ export default function PatientsPage() {
             type="search"
             value={search}
             onChange={e => handleSearch(e.target.value)}
-            placeholder="Buscar por nombre o ID…"
+            placeholder="Buscar por nombre o cedula..."
             aria-label="Buscar pacientes"
             className="w-full rounded-xl border border-white/[0.09] bg-white/[0.05]
                        py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-clinical-600
@@ -71,7 +102,7 @@ export default function PatientsPage() {
             <button
               type="button"
               onClick={() => handleSearch('')}
-              aria-label="Limpiar búsqueda"
+              aria-label="Limpiar busqueda"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-clinical-500
                          transition hover:text-clinical-300"
             >
@@ -80,10 +111,10 @@ export default function PatientsPage() {
           )}
         </div>
 
-        {/* Acción principal */}
+        {/* Boton nuevo paciente */}
         <button
           type="button"
-          onClick={refresh}
+          onClick={openNew}
           className="flex shrink-0 items-center gap-2 rounded-xl bg-electric-gradient
                      px-4 py-2.5 text-sm font-semibold text-white
                      shadow-[0_4px_20px_-6px_rgba(122,34,255,0.5)]
@@ -94,7 +125,7 @@ export default function PatientsPage() {
         </button>
       </div>
 
-      {/* ── Error ── */}
+      {/* Error */}
       {error && (
         <div className="mb-4 flex items-center gap-3 rounded-xl border border-red-400/30
                         bg-red-400/10 px-4 py-3 text-sm text-red-300">
@@ -103,16 +134,16 @@ export default function PatientsPage() {
         </div>
       )}
 
-      {/* ── Tabla ── */}
+      {/* Tabla */}
       <div className="overflow-hidden rounded-xl border border-white/[0.07]
                       bg-white/[0.03]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-white/[0.07] text-left">
-                {['Paciente', 'ID Nacional', 'Sexo', 'Edad', 'Teléfono', 'Ciudad'].map(h => (
+                {['Paciente', 'Cedula', 'Fecha Nac.', 'Telefono', 'Email', ''].map(h => (
                   <th
-                    key={h}
+                    key={h || 'actions'}
                     className="px-4 py-3 text-[11px] font-semibold uppercase
                                tracking-[0.14em] text-clinical-500"
                   >
@@ -123,49 +154,47 @@ export default function PatientsPage() {
             </thead>
 
             <tbody>
-              {/* Skeleton */}
               {loading && <Skeleton.TableRows rows={8} cols={6} />}
 
-              {/* Sin resultados */}
               {!loading && patients.length === 0 && !error && (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-sm text-clinical-500">
                     {query
                       ? `Sin resultados para "${query}".`
-                      : 'No hay pacientes registrados en esta organización.'}
+                      : 'No hay pacientes registrados en esta clinica.'}
                   </td>
                 </tr>
               )}
 
-              {/* Filas */}
               {!loading && patients.map(p => (
                 <PatientRow
                   key={p.id}
                   patient={p}
                   isSelected={selected === p.id}
                   onSelect={() => setSelected(p.id)}
+                  onEdit={() => openEdit(p)}
                 />
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* ── Pie de tabla: paginación ── */}
+        {/* Paginacion */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-white/[0.07]
                           px-4 py-3 text-xs text-clinical-500">
             <span>
-              Página {page} de {totalPages} · {totalCount} registros
+              Pagina {page} de {totalPages} - {totalCount} registros
             </span>
             <div className="flex items-center gap-1">
               <PagBtn
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                label="←"
+                label="<"
               />
               {buildPageRange(page, totalPages).map((n, i) =>
-                n === '…'
-                  ? <span key={`ellipsis-${i}`} className="px-1">…</span>
+                n === '...'
+                  ? <span key={`ellipsis-${i}`} className="px-1">...</span>
                   : (
                     <PagBtn
                       key={n}
@@ -178,27 +207,202 @@ export default function PatientsPage() {
               <PagBtn
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                label="→"
+                label=">"
               />
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Drawer de perfil del paciente ── */}
+      {/* Drawer de perfil */}
       <PatientDrawer
         patientId={selected}
         onClose={() => setSelected(null)}
       />
+
+      {/* Modal de formulario */}
+      {formOpen && (
+        <PatientFormModal
+          patient={editing}
+          onSave={handleSave}
+          onClose={closeForm}
+        />
+      )}
     </>
   );
 }
 
+/* ── Modal de formulario ──────────────────────────────────────────── */
+function PatientFormModal({ patient, onSave, onClose }) {
+  const [nombre,          setNombre]          = useState(patient?.nombre ?? '');
+  const [apellido,        setApellido]        = useState(patient?.apellido ?? '');
+  const [documento,       setDocumento]       = useState(patient?.documento ?? '');
+  const [fechaNacimiento, setFechaNacimiento] = useState(patient?.fecha_nacimiento ?? '');
+  const [telefono,        setTelefono]        = useState(patient?.telefono ?? '');
+  const [email,           setEmail]           = useState(patient?.email ?? '');
+  const [saving,          setSaving]          = useState(false);
+  const [formError,       setFormError]       = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!nombre.trim()) {
+      setFormError('El nombre es obligatorio.');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+
+    const data = {
+      nombre: nombre.trim(),
+      apellido: apellido.trim() || null,
+      documento: documento.trim() || null,
+      documento_tipo: documento.trim() ? 'cedula' : null,
+      fecha_nacimiento: fechaNacimiento || null,
+      telefono: telefono.trim() || null,
+      email: email.trim() || null,
+    };
+
+    const result = await onSave(data);
+    setSaving(false);
+    if (result.error) {
+      setFormError(result.error);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Overlay */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      {/* Panel */}
+      <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.08]
+                      bg-clinical-900 p-6 shadow-2xl">
+        <h2 className="mb-4 font-display text-xl font-bold text-white">
+          {patient ? 'Editar paciente' : 'Nuevo paciente'}
+        </h2>
+
+        {formError && (
+          <div className="mb-4 rounded-xl border border-red-400/30 bg-red-400/10
+                          px-4 py-2 text-sm text-red-300">
+            {formError}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-clinical-400">
+                Nombre *
+              </label>
+              <input
+                type="text"
+                value={nombre}
+                onChange={e => setNombre(e.target.value)}
+                className="modal-input"
+                placeholder="Nombre"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-clinical-400">
+                Apellido
+              </label>
+              <input
+                type="text"
+                value={apellido}
+                onChange={e => setApellido(e.target.value)}
+                className="modal-input"
+                placeholder="Apellido"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-clinical-400">
+              Cedula
+            </label>
+            <input
+              type="text"
+              value={documento}
+              onChange={e => setDocumento(e.target.value)}
+              className="modal-input"
+              placeholder="Numero de documento"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-clinical-400">
+                Fecha de nacimiento
+              </label>
+              <input
+                type="date"
+                value={fechaNacimiento}
+                onChange={e => setFechaNacimiento(e.target.value)}
+                className="modal-input"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-clinical-400">
+                Telefono
+              </label>
+              <input
+                type="tel"
+                value={telefono}
+                onChange={e => setTelefono(e.target.value)}
+                className="modal-input"
+                placeholder="+57 300 000 0000"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-clinical-400">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="modal-input"
+              placeholder="correo@ejemplo.com"
+            />
+          </div>
+
+          {/* Botones */}
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-white/[0.1] bg-white/[0.05]
+                         px-4 py-2 text-sm font-medium text-clinical-300
+                         transition hover:bg-white/[0.08]"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-xl bg-electric-gradient px-5 py-2 text-sm
+                         font-semibold text-white shadow-[0_4px_20px_-6px_rgba(122,34,255,0.5)]
+                         transition hover:brightness-110 active:brightness-95
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 /* ── Fila individual ─────────────────────────────────────────────── */
-function PatientRow({ patient, isSelected, onSelect }) {
-  const age   = calcAge(patient.date_of_birth);
-  const name  = `${patient.first_name} ${patient.last_name}`.trim();
-  const initials = getInitials(patient.first_name, patient.last_name);
+function PatientRow({ patient, isSelected, onSelect, onEdit }) {
+  const name     = `${patient.nombre} ${patient.apellido ?? ''}`.trim();
+  const initials = getInitials(patient.nombre, patient.apellido);
 
   return (
     <tr
@@ -210,37 +414,40 @@ function PatientRow({ patient, isSelected, onSelect }) {
       {/* Nombre + avatar */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
-          <InitialsAvatar initials={initials} sex={patient.biological_sex} />
+          <InitialsAvatar initials={initials} sex={patient.sexo} />
           <div>
             <p className="font-medium text-white">{name}</p>
-            <p className="text-[11px] text-clinical-500">
-              {patient.email ?? '—'}
-            </p>
           </div>
         </div>
       </td>
       <td className="px-4 py-3 font-mono text-xs text-clinical-300">
-        {patient.national_id ?? '—'}
-      </td>
-      <td className="px-4 py-3">
-        {patient.biological_sex
-          ? <Badge variant={patient.biological_sex} dot={false} />
-          : <span className="text-clinical-600">—</span>}
+        {patient.documento ?? '-'}
       </td>
       <td className="px-4 py-3 text-clinical-300">
-        {age !== null ? `${age} a` : '—'}
+        {patient.fecha_nacimiento ? fmtDate(patient.fecha_nacimiento) : '-'}
       </td>
       <td className="px-4 py-3 font-mono text-xs text-clinical-300">
-        {patient.phone ?? '—'}
+        {patient.telefono ?? '-'}
       </td>
-      <td className="px-4 py-3 text-clinical-300">
-        {patient.city ?? '—'}
+      <td className="px-4 py-3 text-xs text-clinical-300">
+        {patient.email ?? '-'}
+      </td>
+      <td className="px-4 py-3">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          className="rounded-lg p-1.5 text-clinical-500 transition
+                     hover:bg-white/[0.06] hover:text-electric-400"
+          aria-label="Editar paciente"
+        >
+          <IconPencil />
+        </button>
       </td>
     </tr>
   );
 }
 
-/* ── Avatar de iniciales clínico ─────────────────────────────────── */
+/* ── Avatar de iniciales ─────────────────────────────────────────── */
 function InitialsAvatar({ initials, sex }) {
   const bg = sex === 'F'
     ? 'bg-violet-500/20 border-violet-400/30 text-violet-300'
@@ -259,7 +466,7 @@ function InitialsAvatar({ initials, sex }) {
   );
 }
 
-/* ── Botón de paginación ──────────────────────────────────────────── */
+/* ── Boton de paginacion ──────────────────────────────────────────── */
 function PagBtn({ onClick, disabled, active, label }) {
   return (
     <button
@@ -279,21 +486,20 @@ function PagBtn({ onClick, disabled, active, label }) {
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
-function calcAge(dob) {
-  if (!dob) return null;
-  const diff = Date.now() - new Date(dob).getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+function fmtDate(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function getInitials(first = '', last = '') {
-  return `${first[0] ?? ''}${last[0] ?? ''}`.toUpperCase();
+  return `${first[0] ?? ''}${(last ?? '')[0] ?? ''}`.toUpperCase();
 }
 
 function buildPageRange(current, total) {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 4) return [1, 2, 3, 4, 5, '…', total];
-  if (current >= total - 3) return [1, '…', total-4, total-3, total-2, total-1, total];
-  return [1, '…', current-1, current, current+1, '…', total];
+  if (current <= 4) return [1, 2, 3, 4, 5, '...', total];
+  if (current >= total - 3) return [1, '...', total-4, total-3, total-2, total-1, total];
+  return [1, '...', current-1, current, current+1, '...', total];
 }
 
 /* ── Micro-iconos SVG inline ─────────────────────────────────────── */
@@ -328,6 +534,17 @@ function IconAlert() {
          viewBox="0 0 24 24" aria-hidden>
       <path strokeLinecap="round"
         d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    </svg>
+  );
+}
+function IconPencil() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}
+         viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round"
+        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+      <path strokeLinecap="round" strokeLinejoin="round"
+        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
   );
 }
