@@ -13,15 +13,15 @@ import { useAuth } from '@/hooks/useAuth.js';
 */
 
 const ROLE_LABELS = {
-  admin:    'Administrador',
-  medico:   'Médico / Profesional',
-  paciente: 'Paciente',
+  admin_clinica: 'Administrador',
+  medico:        'Médico / Profesional',
+  paciente:      'Paciente',
 };
 
 const ROLE_ACCENT = {
-  admin:    'text-electric-600 bg-electric-50 border-electric-200',
-  medico:   'text-violet-700  bg-violet-50  border-violet-200',
-  paciente: 'text-electric-600 bg-electric-50 border-electric-200',
+  admin_clinica: 'text-electric-600 bg-electric-50 border-electric-200',
+  medico:        'text-violet-700  bg-violet-50  border-violet-200',
+  paciente:      'text-electric-600 bg-electric-50 border-electric-200',
 };
 
 export default function DashboardShell({ role, title, eyebrow, profile, children }) {

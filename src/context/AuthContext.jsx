@@ -1,5 +1,11 @@
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getProfile, getSession, onAuthChange, signOut as sbSignOut } from '@/lib/supabaseClient.js';
+import {
+  getProfile,
+  getSession,
+  onAuthChange,
+  signOut as sbSignOut,
+  signUp as sbSignUp,
+} from '@/lib/supabaseClient.js';
 
 /*
   AuthContext — fuente de verdad global para sesión y perfil de usuario.
@@ -12,7 +18,7 @@ import { getProfile, getSession, onAuthChange, signOut as sbSignOut } from '@/li
     refreshProfile() : recarga el perfil desde Supabase (útil tras actualizar datos)
 
   Roles posibles (espejo del ENUM en schema.sql):
-    'admin' | 'medico' | 'paciente'
+    'admin_clinica' | 'medico' | 'paciente'
 */
 
 export const AuthContext = createContext(null);
@@ -104,6 +110,12 @@ export function AuthProvider({ children }) {
     setProfile(null);
   }, []);
 
+  // ── signUp público ─────────────────────────────────────────────────────
+  // Crea el usuario en Supabase Auth; el trigger handle_new_user crea el
+  // perfil. Si la confirmación por email está desactivada, onAuthChange
+  // disparará SIGNED_IN y cargará el perfil automáticamente.
+  const signUp = useCallback((params) => sbSignUp(params), []);
+
   // ── refreshProfile público ─────────────────────────────────────────────
   const refreshProfile = useCallback(() => {
     if (session?.user?.id) loadProfile(session.user.id);
@@ -115,7 +127,7 @@ export function AuthProvider({ children }) {
     profile,
     loading: loading || profLoading,
     isAuthenticated: !!session,
-    role: profile?.role ?? null,          // 'admin' | 'medico' | 'paciente' | null
+    role: profile?.role ?? null,          // 'admin_clinica' | 'medico' | 'paciente' | null
     organization: profile?.organizations ?? null,
     signOut,
     refreshProfile,

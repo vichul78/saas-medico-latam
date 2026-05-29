@@ -18,9 +18,9 @@ import Logo from '@/components/brand/Logo.jsx';
 
 // Destino por defecto si el usuario llega sin "from" en el estado.
 const ROLE_HOME = {
-  admin:    '/dashboard/admin',
-  medico:   '/dashboard/medico',
-  paciente: '/dashboard/paciente',
+  admin_clinica: '/dashboard/admin',
+  medico:        '/dashboard/medico',
+  paciente:      '/dashboard/paciente',
 };
 
 export default function Login() {
@@ -181,10 +181,10 @@ export default function Login() {
           {/* Pie del formulario */}
           <div className="mt-8 flex items-center justify-between border-t border-white/[0.07] pt-6 text-xs text-clinical-500">
             <Link
-              to="/contratar"
+              to="/register"
               className="transition hover:text-electric-400"
             >
-              ¿Sin cuenta? Contratar
+              ¿Sin cuenta? Crear cuenta
             </Link>
             <span className="flex items-center gap-1.5">
               <LockIcon className="h-3 w-3" />

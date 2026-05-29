@@ -14,9 +14,9 @@ import { useAuth } from '@/hooks/useAuth.js';
 */
 
 const ROLE_HOME = {
-  admin:    '/dashboard/admin',
-  medico:   '/dashboard/medico',
-  paciente: '/dashboard/paciente',
+  admin_clinica: '/dashboard/admin',
+  medico:        '/dashboard/medico',
+  paciente:      '/dashboard/paciente',
 };
 
 export default function RoleRedirect() {

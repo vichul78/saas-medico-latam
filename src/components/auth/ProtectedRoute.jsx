@@ -17,18 +17,18 @@ import { useAuth } from '@/hooks/useAuth.js';
     // Solo autenticado
     <Route element={<ProtectedRoute />}>…</Route>
 
-    // Solo admins
-    <Route element={<ProtectedRoute requiredRoles={['admin']} />}>…</Route>
+    // Solo admins de clínica
+    <Route element={<ProtectedRoute requiredRoles={['admin_clinica']} />}>…</Route>
 
     // Admins y médicos
-    <Route element={<ProtectedRoute requiredRoles={['admin','medico']} />}>…</Route>
+    <Route element={<ProtectedRoute requiredRoles={['admin_clinica','medico']} />}>…</Route>
 */
 
 // Destino natural de cada rol cuando se le niega una ruta ajena.
 const ROLE_FALLBACK = {
-  admin:    '/dashboard/admin',
-  medico:   '/dashboard/medico',
-  paciente: '/dashboard/paciente',
+  admin_clinica: '/dashboard/admin',
+  medico:        '/dashboard/medico',
+  paciente:      '/dashboard/paciente',
 };
 
 export default function ProtectedRoute({ requiredRoles = [] }) {

@@ -11,6 +11,7 @@ import RoleRedirect   from '@/components/auth/RoleRedirect.jsx';
 
 // ── Páginas públicas ──────────────────────────────────────────────────────────
 import Login    from '@/pages/Login.jsx';
+import Register from '@/pages/Register.jsx';
 import NotFound from '@/pages/NotFound.jsx';
 
 // ── Páginas del sitio (acceso público + autenticado) ─────────────────────────
@@ -110,6 +111,13 @@ export const router = createBrowserRouter([
     errorElement: <NotFound />,
   },
 
+  // ── 1b. Registro de cuenta (fuera de cualquier layout, como /login) ───────
+  {
+    path:         '/register',
+    element:      <Register />,
+    errorElement: <NotFound />,
+  },
+
   // ── 2. DashboardLayout — área autenticada ─────────────────────────────────
   //    Tiene su propio header oscuro, sidebar colapsable y copiloto dark.
   //    Todas las rutas aquí requieren sesión; el guard está por rol.
@@ -124,7 +132,7 @@ export const router = createBrowserRouter([
 
       // Admin
       {
-        element: <ProtectedRoute requiredRoles={['admin']} />,
+        element: <ProtectedRoute requiredRoles={['admin_clinica']} />,
         children: [
           { path: 'admin', element: <AdminDashboard /> },
         ],
@@ -148,7 +156,7 @@ export const router = createBrowserRouter([
 
       // ── Módulos clínicos (admin + medico) ────────────────────────────────
       {
-        element: <ProtectedRoute requiredRoles={['admin', 'medico']} />,
+        element: <ProtectedRoute requiredRoles={['admin_clinica', 'medico']} />,
         children: [
           { path: 'pacientes', element: <PatientsPage /> },
           { path: 'citas',     element: <AppointmentsPage /> },
@@ -158,7 +166,7 @@ export const router = createBrowserRouter([
 
       // ── Módulo de facturación (solo admin) ───────────────────────────────
       {
-        element: <ProtectedRoute requiredRoles={['admin']} />,
+        element: <ProtectedRoute requiredRoles={['admin_clinica']} />,
         children: [
           { path: 'facturacion', element: <BillingPage /> },
         ],
