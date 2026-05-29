@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useEstudios } from '@/hooks/useEstudios.js';
 import { usePatients } from '@/hooks/usePatients.js';
 import Skeleton        from '@/components/common/Skeleton.jsx';
@@ -17,6 +17,7 @@ const ESTADO_OPTIONS = [
   { value: 'pendiente',  label: 'Pendiente' },
   { value: 'en_proceso', label: 'En Proceso' },
   { value: 'completado', label: 'Completado' },
+  { value: 'cancelado',  label: 'Cancelado' },
 ];
 
 const ESTADO_DB_TO_UI = {
@@ -25,19 +26,21 @@ const ESTADO_DB_TO_UI = {
   en_lectura:        'en_proceso',
   informado:         'completado',
   entregado:         'completado',
-  cancelado:         'pendiente',
+  cancelado:         'cancelado',
 };
 
 const BADGE_CLASSES = {
   pendiente:  'border-amber-400/30 bg-amber-400/10 text-amber-300',
   en_proceso: 'border-electric-400/30 bg-electric-400/10 text-electric-300',
   completado: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
+  cancelado:  'border-rose-400/30 bg-rose-400/10 text-rose-300',
 };
 
 const BADGE_LABELS = {
   pendiente:  'Pendiente',
   en_proceso: 'En Proceso',
   completado: 'Completado',
+  cancelado:  'Cancelado',
 };
 
 export default function EstudiosPage() {
@@ -46,6 +49,8 @@ export default function EstudiosPage() {
   const [estadoFilter, setEstadoFilter] = useState('');
   const [formOpen,    setFormOpen]    = useState(false);
   const debounceRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   const handleSearch = useCallback((val) => {
     setSearch(val);
@@ -423,6 +428,7 @@ function EstudioFormModal({ onSave, onClose }) {
                 <option value="pendiente" className="bg-clinical-900 text-white">Pendiente</option>
                 <option value="en_proceso" className="bg-clinical-900 text-white">En Proceso</option>
                 <option value="completado" className="bg-clinical-900 text-white">Completado</option>
+                <option value="cancelado" className="bg-clinical-900 text-white">Cancelado</option>
               </select>
             </div>
           </div>

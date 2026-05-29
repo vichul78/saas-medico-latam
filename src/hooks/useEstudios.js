@@ -9,13 +9,14 @@ import { useAuth } from '@/hooks/useAuth.js';
   Filtra por clinica_id = profile.organization_id del usuario autenticado.
 
   Mapeo UI → DB para estado:
-    pendiente   → 'recibido'
-    en_proceso  → 'en_lectura'
-    completado  → 'informado'
+    pendiente   → ['recibido', 'pendiente_lectura']
+    en_proceso  → ['en_lectura']
+    completado  → ['informado', 'entregado']
+    cancelado   → ['cancelado']
 
   @param {object} opts
     search   : string — filtro por nombre/apellido del paciente (ilike)
-    estado   : string — filtro por estado UI ('pendiente'|'en_proceso'|'completado'|'')
+    estado   : string — filtro por estado UI ('pendiente'|'en_proceso'|'completado'|'cancelado'|'')
     pageSize : number — registros por pagina (default 25)
 
   @returns {{
@@ -32,9 +33,10 @@ import { useAuth } from '@/hooks/useAuth.js';
 */
 
 const ESTADO_UI_TO_DB = {
-  pendiente:  'recibido',
-  en_proceso: 'en_lectura',
-  completado: 'informado',
+  pendiente:  ['recibido', 'pendiente_lectura'],
+  en_proceso: ['en_lectura'],
+  completado: ['informado', 'entregado'],
+  cancelado:  ['cancelado'],
 };
 
 export function useEstudios({ search = '', estado = '', pageSize = 25 } = {}) {
@@ -73,7 +75,7 @@ export function useEstudios({ search = '', estado = '', pageSize = 25 } = {}) {
 
       // Filtro por estado (mapeado de UI a DB)
       if (estado && ESTADO_UI_TO_DB[estado]) {
-        query = query.eq('estado', ESTADO_UI_TO_DB[estado]);
+        query = query.in('estado', ESTADO_UI_TO_DB[estado]);
       }
 
       // Busqueda por nombre/apellido del paciente
@@ -122,7 +124,7 @@ export function useEstudios({ search = '', estado = '', pageSize = 25 } = {}) {
   const createEstudio = useCallback(async (data) => {
     if (!clinicaId) return { data: null, error: 'Sin clinica asociada' };
 
-    const dbEstado = ESTADO_UI_TO_DB[data.estado] ?? 'recibido';
+    const dbEstado = ESTADO_UI_TO_DB[data.estado]?.[0] ?? 'recibido';
 
     const payload = {
       paciente_id: data.paciente_id,
