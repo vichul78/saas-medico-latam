@@ -9,7 +9,7 @@ import { sendWhatsAppResult } from '@/lib/twilioWhatsapp.js';
  * Flujo:
  *  1. Obtiene datos del informe (estudio + paciente)
  *  2. Valida que el estado sea 'firmado'
- *  3. Genera token unico y lo inserta en informe_tokens (24h de expiracion)
+ *  3. Genera token unico y lo inserta en share_tokens (24h de expiracion)
  *  4. Construye la URL publica del resultado
  *  5. Envia el mensaje via Twilio (client-side, solo dev)
  *
@@ -84,20 +84,33 @@ export function useEnvioWhatsapp() {
         return { success: false, error: msg };
       }
 
+      // Validate phone: strip non-digits, ensure at least 10 digits, prepend '+' if missing
+      const digitsOnly = paciente.telefono.replace(/\D/g, '');
+      if (digitsOnly.length < 10) {
+        const msg = 'El telefono del paciente debe tener al menos 10 digitos';
+        setError(msg);
+        setLoading(false);
+        return { success: false, error: msg };
+      }
+      const telefonoNormalizado = paciente.telefono.startsWith('+')
+        ? paciente.telefono
+        : '+' + digitsOnly;
+
       // 3. Generate unique token
       const token = crypto.randomUUID();
 
-      // 4. Insert into informe_tokens with 24h expiry
+      // 4. Insert into share_tokens with 24h expiry (aligns with get_shared_informe RPC)
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const clinicaId = profile?.organization_id || informe.clinica_id;
 
       const { error: insertError } = await supabase
-        .from('informe_tokens')
+        .from('share_tokens')
         .insert({
           informe_id: informeId,
           clinica_id: clinicaId,
           token,
           expires_at: expiresAt,
+          created_by: profile?.id || null,
         });
 
       if (insertError) {
@@ -120,7 +133,7 @@ export function useEnvioWhatsapp() {
       const pacienteNombre = `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim();
       const result = await sendWhatsAppResult({
         informeId,
-        pacienteTelefono: paciente.telefono,
+        pacienteTelefono: telefonoNormalizado,
         pacienteNombre,
         resumenTexto,
         linkUrl,

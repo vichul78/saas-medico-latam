@@ -35,6 +35,12 @@ export async function sendWhatsAppResult({
   resumenTexto,
   linkUrl,
 }) {
+  // Production guard: prevent any calls outside dev mode
+  if (!import.meta.env.DEV) {
+    console.error('[twilioWhatsapp] BLOQUEADO: No usar en produccion. Usar la Edge Function.');
+    return { success: false, error: 'Modulo bloqueado en produccion. Usar Edge Function.', messageSid: null };
+  }
+
   const accountSid = import.meta.env.VITE_TWILIO_ACCOUNT_SID;
   const authToken  = import.meta.env.VITE_TWILIO_AUTH_TOKEN;
   const fromNumber = import.meta.env.VITE_TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
