@@ -29,6 +29,7 @@ import PacienteDashboard from '@/pages/dashboards/PacienteDashboard.jsx';
 // ── Módulos clínicos ──────────────────────────────────────────────────────────
 import PatientsPage     from '@/pages/clinical/PatientsPage.jsx';
 import AppointmentsPage from '@/pages/clinical/AppointmentsPage.jsx';
+import EstudiosPage     from '@/pages/clinical/EstudiosPage.jsx';
 import VisorDicomPage   from '@/pages/features/tech/VisorDicom.jsx';
 import BillingPage      from '@/pages/billing/BillingPage.jsx';
 
@@ -161,6 +162,7 @@ export const router = createBrowserRouter([
           { path: 'pacientes', element: <PatientsPage /> },
           { path: 'citas',     element: <AppointmentsPage /> },
           { path: 'visor',     element: <VisorDicomPage /> },
+          { path: 'estudios',  element: <EstudiosPage /> },
         ],
       },
 
