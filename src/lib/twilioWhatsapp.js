@@ -14,6 +14,13 @@
  * ║                                                                            ║
  * ║  ESTE ARCHIVO DEBE ELIMINARSE O REEMPLAZARSE POR UNA LLAMADA A LA         ║
  * ║  EDGE FUNCTION ANTES DE DESPLEGAR A CUALQUIER ENTORNO PUBLICO.            ║
+ * ║                                                                            ║
+ * ║  CONFIGURACION LOCAL:                                                      ║
+ * ║  Para probar localmente, agrega estas variables a tu .env local            ║
+ * ║  (NO committear, .env esta en .gitignore):                                 ║
+ * ║    VITE_TWILIO_ACCOUNT_SID=ACxxxxxxxxx                                    ║
+ * ║    VITE_TWILIO_AUTH_TOKEN=xxxxxxxxx                                        ║
+ * ║    VITE_TWILIO_WHATSAPP_FROM=whatsapp:+14155238886                         ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 

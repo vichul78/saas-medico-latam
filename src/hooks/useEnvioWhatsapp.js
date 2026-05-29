@@ -4,6 +4,26 @@ import { useAuth } from '@/hooks/useAuth.js';
 import { sendWhatsAppResult } from '@/lib/twilioWhatsapp.js';
 
 /**
+ * ┌────────────────────────────────────────────────────────────────────────────┐
+ * │  DEV/TESTING SHORTCUT - NO ES EL PATH DE PRODUCCION                       │
+ * │                                                                            │
+ * │  Este hook envia un WhatsApp directamente desde el navegador via la        │
+ * │  libreria twilioWhatsapp.js (client-side). Esta BLOQUEADO en builds de     │
+ * │  produccion por el guard import.meta.env.DEV en twilioWhatsapp.js.         │
+ * │                                                                            │
+ * │  PARA PRODUCCION, el flujo canonico es:                                    │
+ * │    SendWhatsAppModal  ->  useShareInforme hook  ->  Edge Function          │
+ * │    (src/components/clinical/SendWhatsAppModal.jsx)                          │
+ * │    (src/hooks/useShareInforme.js)                                          │
+ * │    (supabase/functions/send-whatsapp/index.ts)                             │
+ * │                                                                            │
+ * │  Ese flujo ejecuta la llamada a Twilio server-side (seguro, sin exponer    │
+ * │  credenciales) y permite al usuario editar telefono y resumen antes de     │
+ * │  enviar.                                                                   │
+ * └────────────────────────────────────────────────────────────────────────────┘
+ */
+
+/**
  * useEnvioWhatsapp — hook para enviar un informe firmado por WhatsApp.
  *
  * Flujo:
