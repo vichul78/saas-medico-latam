@@ -13,7 +13,7 @@ import RoleRedirect   from '@/components/auth/RoleRedirect.jsx';
 import Login    from '@/pages/Login.jsx';
 import Register from '@/pages/Register.jsx';
 import NotFound from '@/pages/NotFound.jsx';
-import ResultadoViewer from '@/pages/public/ResultadoViewer.jsx';
+import ResultadoPublico from '@/pages/public/ResultadoPublico.jsx';
 
 // ── Páginas del sitio (acceso público + autenticado) ─────────────────────────
 import LandingPage from '@/pages/LandingPage.jsx';  // ← nueva landing pública
@@ -123,7 +123,7 @@ export const router = createBrowserRouter([
   // ── 1c. Visor publico de resultados compartidos (sin layout) ──────────────
   {
     path:         '/resultado/:token',
-    element:      <ResultadoViewer />,
+    element:      <ResultadoPublico />,
     errorElement: <NotFound />,
   },
 

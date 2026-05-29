@@ -448,6 +448,34 @@ END;
 $$;
 
 -- ─────────────────────────────────────────────
+-- 7.6. INFORME_TOKENS (envio directo de informes via WhatsApp)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS informe_tokens (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  informe_id  UUID NOT NULL REFERENCES informes(id) ON DELETE CASCADE,
+  clinica_id  UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  token       TEXT NOT NULL UNIQUE,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_informe_tokens_token ON informe_tokens(token);
+
+ALTER TABLE informe_tokens ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS informe_tokens_staff ON informe_tokens;
+CREATE POLICY informe_tokens_staff ON informe_tokens
+  FOR ALL
+  USING (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  )
+  WITH CHECK (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  );
+
+-- ─────────────────────────────────────────────
 -- 10. SEED MÍNIMO (desarrollo)
 -- ─────────────────────────────────────────────
 INSERT INTO clinicas (nombre, slug, pais, moneda, locale, zona_horaria, plan)
