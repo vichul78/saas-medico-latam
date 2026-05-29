@@ -1,12 +1,20 @@
 -- ============================================================
---  MediCo LatAm — Supabase Schema
---  Versión: 0.1.0
---  Características:
---    • Multi-tenant (organizations)
---    • Roles separados: admin | medico | paciente
---    • Multi-moneda LatAm (ISO 4217)
---    • Row-Level Security (RLS) en todas las tablas sensibles
---    • Auditoría básica (created_at / updated_at automático)
+--  MediCo LatAm — Supabase Schema (modelo en español)
+--  Versión: 1.0.0
+--
+--  Tablas:  clinicas · usuarios · pacientes · estudios · informes
+--  Multi-tenancy: Row-Level Security por `clinica_id` en TODAS las tablas.
+--
+--  ✅  SCHEMA CANÓNICO de la plataforma (Opción A).
+--  ------------------------------------------------------------
+--  Reemplaza al antiguo modelo en inglés (organizations/profiles/…).
+--  El frontend lee estas tablas a través de un adaptador en
+--  `supabaseClient.getProfile()` que mapea usuarios+clinicas a la forma
+--  que consumen los componentes (role / first_name / organizations…).
+--
+--  Ejecuta este archivo COMPLETO en el SQL Editor de Supabase sobre una
+--  base limpia. El trigger `handle_new_usuario` auto-crea la fila en
+--  `usuarios` al registrarse (signUp).
 -- ============================================================
 
 -- ─────────────────────────────────────────────
@@ -17,90 +25,37 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ─────────────────────────────────────────────
 -- 1. TIPOS ENUMERADOS
+--    Rol de usuario, alineado con el resto de la plataforma.
 -- ─────────────────────────────────────────────
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE user_role AS ENUM ('admin_clinica', 'medico', 'paciente');
+  END IF;
+END$$;
 
--- Rol de usuario dentro de la plataforma
-CREATE TYPE user_role AS ENUM ('admin', 'medico', 'paciente');
+-- Estado de un estudio de imagen
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'estudio_estado') THEN
+    CREATE TYPE estudio_estado AS ENUM (
+      'recibido', 'pendiente_lectura', 'en_lectura', 'informado', 'entregado', 'cancelado'
+    );
+  END IF;
+END$$;
 
--- Monedas soportadas en Latinoamérica + USD como fallback
-CREATE TYPE latam_currency AS ENUM (
-  'MXN', -- Peso mexicano
-  'BRL', -- Real brasileño
-  'ARS', -- Peso argentino
-  'COP', -- Peso colombiano
-  'CLP', -- Peso chileno
-  'PEN', -- Sol peruano
-  'UYU', -- Peso uruguayo
-  'BOB', -- Boliviano
-  'PYG', -- Guaraní paraguayo
-  'VES', -- Bolívar venezolano
-  'USD'  -- Dólar (fallback)
-);
-
--- Estado de un estudio/imagen médica
-CREATE TYPE study_status AS ENUM (
-  'recibido',
-  'pendiente_lectura',
-  'en_lectura',
-  'informado',
-  'entregado',
-  'cancelado'
-);
-
--- Estado de una cita
-CREATE TYPE appointment_status AS ENUM (
-  'programada',
-  'confirmada',
-  'en_curso',
-  'completada',
-  'cancelada',
-  'no_asistio'
-);
-
--- Estado de una factura
-CREATE TYPE invoice_status AS ENUM (
-  'borrador',
-  'emitida',
-  'pagada',
-  'vencida',
-  'cancelada'
-);
-
--- Método de pago
-CREATE TYPE payment_method AS ENUM (
-  'efectivo',
-  'tarjeta_credito',
-  'tarjeta_debito',
-  'transferencia',
-  'cheque',
-  'criptomoneda',
-  'otro'
-);
-
--- Especialidad clínica (espejo del frontend)
-CREATE TYPE clinical_specialty AS ENUM (
-  'radiologia',
-  'dental',
-  'cirugia',
-  'cardiologia',
-  'neumologia',
-  'audiometria',
-  'patologia',
-  'obstetrico',
-  'colposcopia',
-  'oftalmologia',
-  'veterinaria',
-  'medicina_general',
-  'otra'
-);
-
--- Prioridad de estudio
-CREATE TYPE study_priority AS ENUM ('rutina', 'urgente', 'stat');
+-- Estado de un informe
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'informe_estado') THEN
+    CREATE TYPE informe_estado AS ENUM ('borrador', 'firmado', 'rectificado');
+  END IF;
+END$$;
 
 -- ─────────────────────────────────────────────
 -- 2. FUNCIÓN AUXILIAR: updated_at automático
 -- ─────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -109,452 +64,328 @@ END;
 $$;
 
 -- ─────────────────────────────────────────────
--- 3. ORGANIZACIONES (tenants)
+-- 3. CLINICAS  (raíz del tenant)
 -- ─────────────────────────────────────────────
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS clinicas (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nombre       TEXT NOT NULL,
+  slug         TEXT NOT NULL UNIQUE,            -- subdominio / URL amigable
+  pais         CHAR(2) NOT NULL DEFAULT 'MX',   -- ISO 3166-1 alpha-2
+  moneda       CHAR(3) NOT NULL DEFAULT 'MXN',  -- ISO 4217
+  locale       TEXT NOT NULL DEFAULT 'es-MX',
+  zona_horaria TEXT NOT NULL DEFAULT 'America/Mexico_City',
+  logo_url     TEXT,
+  plan         TEXT NOT NULL DEFAULT 'starter', -- starter | professional | enterprise
+  activa       BOOLEAN NOT NULL DEFAULT TRUE,
+  metadata     JSONB DEFAULT '{}',
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TRIGGER trg_clinicas_updated_at
+  BEFORE UPDATE ON clinicas
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ─────────────────────────────────────────────
+-- 4. USUARIOS  (extiende auth.users; portador del rol y del clinica_id)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS usuarios (
+  id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  clinica_id  UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  rol         user_role NOT NULL DEFAULT 'paciente',
+  nombre      TEXT NOT NULL,
+  apellido    TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  telefono    TEXT,
+  avatar_url  TEXT,
+  activo      BOOLEAN NOT NULL DEFAULT TRUE,
+  metadata    JSONB DEFAULT '{}',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_usuarios_clinica ON usuarios(clinica_id);
+CREATE INDEX IF NOT EXISTS idx_usuarios_rol     ON usuarios(rol);
+
+CREATE TRIGGER trg_usuarios_updated_at
+  BEFORE UPDATE ON usuarios
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ─────────────────────────────────────────────
+-- 5. PACIENTES
+--    `usuario_id` es opcional: un paciente puede tener cuenta (portal)
+--    o ser sólo un registro demográfico gestionado por la clínica.
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS pacientes (
+  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id      UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  usuario_id      UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  nombre          TEXT NOT NULL,
+  apellido        TEXT NOT NULL,
+  fecha_nacimiento DATE,
+  sexo            CHAR(1) CHECK (sexo IN ('M','F','O')),
+  documento       TEXT,                 -- CURP, DNI, CPF, RUT, cédula…
+  documento_tipo  TEXT,                 -- curp | dni | cpf | rut | cedula | otro
+  telefono        TEXT,
+  email           TEXT,
+  direccion       TEXT,
+  ciudad          TEXT,
+  alergias        TEXT[],
+  notas           TEXT,
+  metadata        JSONB DEFAULT '{}',
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pacientes_clinica ON pacientes(clinica_id);
+CREATE INDEX IF NOT EXISTS idx_pacientes_usuario ON pacientes(usuario_id);
+
+CREATE TRIGGER trg_pacientes_updated_at
+  BEFORE UPDATE ON pacientes
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ─────────────────────────────────────────────
+-- 6. ESTUDIOS  (imágenes / pruebas asociadas a un paciente)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS estudios (
+  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id       UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  paciente_id      UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  medico_id        UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- radiólogo asignado
+  medico_referente UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  modalidad        TEXT,                    -- CT | MR | DX | US | ECG …
+  descripcion      TEXT,
+  estado           estudio_estado NOT NULL DEFAULT 'recibido',
+  prioridad        TEXT NOT NULL DEFAULT 'rutina',  -- rutina | urgente | stat
+  accession_number TEXT UNIQUE,             -- nº de acceso DICOM / RIS
+  dicom_study_uid  TEXT UNIQUE,             -- 0020,000D Study Instance UID
+  storage_path     TEXT,                    -- ruta en Supabase Storage
+  fecha_estudio    DATE NOT NULL DEFAULT CURRENT_DATE,
+  metadata         JSONB DEFAULT '{}',
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_estudios_clinica  ON estudios(clinica_id);
+CREATE INDEX IF NOT EXISTS idx_estudios_paciente ON estudios(paciente_id);
+CREATE INDEX IF NOT EXISTS idx_estudios_estado   ON estudios(estado);
+CREATE INDEX IF NOT EXISTS idx_estudios_fecha    ON estudios(fecha_estudio DESC);
+
+CREATE TRIGGER trg_estudios_updated_at
+  BEFORE UPDATE ON estudios
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ─────────────────────────────────────────────
+-- 7. INFORMES  (reporte clínico firmado de un estudio)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS informes (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name          TEXT NOT NULL,
-  slug          TEXT NOT NULL UNIQUE,         -- subdominio / URL amigable
-  country_code  CHAR(2) NOT NULL,             -- ISO 3166-1 alpha-2
-  currency      latam_currency NOT NULL DEFAULT 'MXN',
-  locale        TEXT NOT NULL DEFAULT 'es-MX',
-  timezone      TEXT NOT NULL DEFAULT 'America/Mexico_City',
-  logo_url      TEXT,
-  plan          TEXT NOT NULL DEFAULT 'starter', -- starter | professional | enterprise
-  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+  clinica_id    UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  estudio_id    UUID NOT NULL REFERENCES estudios(id) ON DELETE CASCADE,
+  medico_id     UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- autor del informe
+  titulo        TEXT,
+  hallazgos     TEXT,                     -- cuerpo del informe
+  impresion     TEXT,                     -- impresión diagnóstica / conclusión
+  contenido_html TEXT,                    -- versión renderizada / firmada
+  estado        informe_estado NOT NULL DEFAULT 'borrador',
+  cie10_codes   TEXT[],                   -- diagnósticos CIE-10
+  firmado_at    TIMESTAMPTZ,
+  firmado_por   UUID REFERENCES usuarios(id) ON DELETE SET NULL,
   metadata      JSONB DEFAULT '{}',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TRIGGER trg_organizations_updated_at
-  BEFORE UPDATE ON organizations
-  FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+CREATE INDEX IF NOT EXISTS idx_informes_clinica ON informes(clinica_id);
+CREATE INDEX IF NOT EXISTS idx_informes_estudio ON informes(estudio_id);
+CREATE INDEX IF NOT EXISTS idx_informes_estado  ON informes(estado);
 
--- ─────────────────────────────────────────────
--- 4. PERFILES DE USUARIO
---    Extiende auth.users de Supabase Auth.
---    Rol separado por perfil (un usuario puede tener
---    varios perfiles en distintas organizaciones).
--- ─────────────────────────────────────────────
-CREATE TABLE profiles (
-  id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  role            user_role NOT NULL DEFAULT 'paciente',
-  first_name      TEXT NOT NULL,
-  last_name       TEXT NOT NULL,
-  display_name    TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED,
-  email           TEXT NOT NULL,
-  phone           TEXT,
-  avatar_url      TEXT,
-  preferred_lang  CHAR(2) NOT NULL DEFAULT 'es',  -- ISO 639-1
-  is_active       BOOLEAN NOT NULL DEFAULT TRUE,
-  metadata        JSONB DEFAULT '{}',
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, organization_id)
-);
+CREATE TRIGGER trg_informes_updated_at
+  BEFORE UPDATE ON informes
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE INDEX idx_profiles_org ON profiles(organization_id);
-CREATE INDEX idx_profiles_role ON profiles(role);
+-- ═════════════════════════════════════════════
+-- 8. ROW-LEVEL SECURITY  (multi-tenancy por clinica_id)
+-- ═════════════════════════════════════════════
 
-CREATE TRIGGER trg_profiles_updated_at
-  BEFORE UPDATE ON profiles
-  FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+ALTER TABLE clinicas  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usuarios  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pacientes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE estudios  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE informes  ENABLE ROW LEVEL SECURITY;
 
--- ─────────────────────────────────────────────
--- 5. MÉDICOS (extensión del perfil)
--- ─────────────────────────────────────────────
-CREATE TABLE doctors (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  profile_id       UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  organization_id  UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  specialty        clinical_specialty NOT NULL DEFAULT 'medicina_general',
-  license_number   TEXT,                        -- cédula profesional / registro
-  license_country  CHAR(2),
-  bio              TEXT,
-  signature_url    TEXT,                        -- firma digital para reportes
-  consultation_fee NUMERIC(12,2),
-  currency         latam_currency,              -- moneda del honorario
-  is_available     BOOLEAN NOT NULL DEFAULT TRUE,
-  metadata         JSONB DEFAULT '{}',
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_doctors_org ON doctors(organization_id);
-CREATE INDEX idx_doctors_specialty ON doctors(specialty);
-
-CREATE TRIGGER trg_doctors_updated_at
-  BEFORE UPDATE ON doctors
-  FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
-
--- ─────────────────────────────────────────────
--- 6. PACIENTES (extensión del perfil)
--- ─────────────────────────────────────────────
-CREATE TABLE patients (
-  id                 UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  profile_id         UUID REFERENCES profiles(id) ON DELETE SET NULL, -- puede ser anónimo
-  organization_id    UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  -- Datos demográficos
-  first_name         TEXT NOT NULL,
-  last_name          TEXT NOT NULL,
-  date_of_birth      DATE,
-  biological_sex     CHAR(1) CHECK (biological_sex IN ('M','F','O')),
-  national_id        TEXT,                    -- DNI, CURP, CPF, RUT, etc.
-  national_id_type   TEXT,                    -- curp | dni | cpf | rut | cedula | otro
-  nationality        CHAR(2),
-  phone              TEXT,
-  email              TEXT,
-  address            TEXT,
-  city               TEXT,
-  country_code       CHAR(2),
-  blood_type         TEXT,
-  allergies          TEXT[],
-  notes              TEXT,
-  metadata           JSONB DEFAULT '{}',
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_patients_org ON patients(organization_id);
-CREATE INDEX idx_patients_profile ON patients(profile_id);
-
-CREATE TRIGGER trg_patients_updated_at
-  BEFORE UPDATE ON patients
-  FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
-
--- ─────────────────────────────────────────────
--- 7. ESTUDIOS / IMÁGENES MÉDICAS
--- ─────────────────────────────────────────────
-CREATE TABLE studies (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  organization_id  UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  patient_id       UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  doctor_id        UUID REFERENCES doctors(id) ON DELETE SET NULL,
-  referring_doctor UUID REFERENCES doctors(id) ON DELETE SET NULL,
-  specialty        clinical_specialty NOT NULL,
-  modality         TEXT,                      -- CT | MR | DX | US | ECG | SP …
-  description      TEXT,
-  priority         study_priority NOT NULL DEFAULT 'rutina',
-  status           study_status NOT NULL DEFAULT 'recibido',
-  accession_number TEXT UNIQUE,               -- número de acceso DICOM / RIS
-  dicom_study_uid  TEXT UNIQUE,               -- 0020,000D Study Instance UID
-  storage_path     TEXT,                      -- ruta en Supabase Storage
-  report_html      TEXT,                      -- reporte firmado en HTML
-  signed_at        TIMESTAMPTZ,
-  signed_by        UUID REFERENCES doctors(id),
-  study_date       DATE NOT NULL DEFAULT CURRENT_DATE,
-  metadata         JSONB DEFAULT '{}',
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_studies_org ON studies(organization_id);
-CREATE INDEX idx_studies_patient ON studies(patient_id);
-CREATE INDEX idx_studies_status ON studies(status);
-CREATE INDEX idx_studies_date ON studies(study_date DESC);
-
-CREATE TRIGGER trg_studies_updated_at
-  BEFORE UPDATE ON studies
-  FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
-
--- ─────────────────────────────────────────────
--- 8. CITAS Y AGENDAS
--- ─────────────────────────────────────────────
-CREATE TABLE appointments (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  organization_id  UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  patient_id       UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  doctor_id        UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
-  specialty        clinical_specialty NOT NULL,
-  status           appointment_status NOT NULL DEFAULT 'programada',
-  starts_at        TIMESTAMPTZ NOT NULL,
-  ends_at          TIMESTAMPTZ NOT NULL,
-  duration_min     SMALLINT GENERATED ALWAYS AS (
-    EXTRACT(EPOCH FROM (ends_at - starts_at)) / 60
-  ) STORED,
-  reason           TEXT,
-  notes            TEXT,
-  room             TEXT,
-  is_virtual       BOOLEAN NOT NULL DEFAULT FALSE,
-  video_url        TEXT,
-  reminder_sent_at TIMESTAMPTZ,
-  metadata         JSONB DEFAULT '{}',
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CHECK (ends_at > starts_at)
-);
-
-CREATE INDEX idx_appointments_org ON appointments(organization_id);
-CREATE INDEX idx_appointments_doctor ON appointments(doctor_id, starts_at);
-CREATE INDEX idx_appointments_patient ON appointments(patient_id);
-CREATE INDEX idx_appointments_status ON appointments(status);
-
-CREATE TRIGGER trg_appointments_updated_at
-  BEFORE UPDATE ON appointments
-  FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
-
--- ─────────────────────────────────────────────
--- 9. FACTURAS
---    Multi-moneda LatAm: cada factura almacena
---    monto, moneda ISO y tipo de cambio de referencia.
--- ─────────────────────────────────────────────
-CREATE TABLE invoices (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  organization_id  UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  patient_id       UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  doctor_id        UUID REFERENCES doctors(id) ON DELETE SET NULL,
-  invoice_number   TEXT NOT NULL,
-  status           invoice_status NOT NULL DEFAULT 'borrador',
-  currency         latam_currency NOT NULL,
-  subtotal         NUMERIC(14,2) NOT NULL DEFAULT 0,
-  tax_rate         NUMERIC(5,4) NOT NULL DEFAULT 0,       -- Ej: 0.16 para IVA 16%
-  tax_amount       NUMERIC(14,2) GENERATED ALWAYS AS (
-    subtotal * tax_rate
-  ) STORED,
-  total            NUMERIC(14,2) GENERATED ALWAYS AS (
-    subtotal + subtotal * tax_rate
-  ) STORED,
-  usd_exchange_rate NUMERIC(14,6),                        -- tasa al momento de emisión
-  issued_at        DATE,
-  due_at           DATE,
-  paid_at          TIMESTAMPTZ,
-  payment_method   payment_method,
-  cfdi_uuid        TEXT,                                  -- UUID fiscal MX (SAT)
-  nfse_number      TEXT,                                  -- NFS-e Brasil
-  notes            TEXT,
-  metadata         JSONB DEFAULT '{}',
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(organization_id, invoice_number)
-);
-
-CREATE INDEX idx_invoices_org ON invoices(organization_id);
-CREATE INDEX idx_invoices_patient ON invoices(patient_id);
-CREATE INDEX idx_invoices_status ON invoices(status);
-
-CREATE TRIGGER trg_invoices_updated_at
-  BEFORE UPDATE ON invoices
-  FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
-
--- Items de factura
-CREATE TABLE invoice_items (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  invoice_id   UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
-  description  TEXT NOT NULL,
-  quantity     NUMERIC(10,2) NOT NULL DEFAULT 1,
-  unit_price   NUMERIC(14,2) NOT NULL,
-  currency     latam_currency NOT NULL,
-  study_id     UUID REFERENCES studies(id) ON DELETE SET NULL,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_invoice_items_invoice ON invoice_items(invoice_id);
-
--- ─────────────────────────────────────────────
--- 10. HISTORIAL CLÍNICO (notas / SOAP)
--- ─────────────────────────────────────────────
-CREATE TABLE clinical_notes (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  organization_id  UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  patient_id       UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  doctor_id        UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
-  appointment_id   UUID REFERENCES appointments(id) ON DELETE SET NULL,
-  note_type        TEXT NOT NULL DEFAULT 'soap',     -- soap | evolucion | receta | interconsulta
-  subjective       TEXT,
-  objective        TEXT,
-  assessment       TEXT,
-  plan             TEXT,
-  full_text        TEXT,                             -- para notas libres
-  cie10_codes      TEXT[],                           -- diagnósticos CIE-10
-  signed_at        TIMESTAMPTZ,
-  metadata         JSONB DEFAULT '{}',
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_notes_patient ON clinical_notes(patient_id);
-CREATE INDEX idx_notes_org ON clinical_notes(organization_id);
-
-CREATE TRIGGER trg_notes_updated_at
-  BEFORE UPDATE ON clinical_notes
-  FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
-
--- ─────────────────────────────────────────────
--- 11. AUDITORÍA (log inmutable de acciones clave)
--- ─────────────────────────────────────────────
-CREATE TABLE audit_log (
-  id              BIGSERIAL PRIMARY KEY,
-  organization_id UUID REFERENCES organizations(id) ON DELETE SET NULL,
-  actor_id        UUID,                -- auth.users.id
-  actor_role      user_role,
-  action          TEXT NOT NULL,       -- 'study.signed' | 'invoice.paid' | etc.
-  table_name      TEXT,
-  record_id       UUID,
-  old_data        JSONB,
-  new_data        JSONB,
-  ip_address      INET,
-  user_agent      TEXT,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_audit_org ON audit_log(organization_id);
-CREATE INDEX idx_audit_actor ON audit_log(actor_id);
-CREATE INDEX idx_audit_action ON audit_log(action);
-
--- ─────────────────────────────────────────────
--- 12. ROW-LEVEL SECURITY (RLS)
--- ─────────────────────────────────────────────
-
--- Habilitamos RLS en todas las tablas sensibles
-ALTER TABLE organizations    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE profiles         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE doctors          ENABLE ROW LEVEL SECURITY;
-ALTER TABLE patients         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE studies          ENABLE ROW LEVEL SECURITY;
-ALTER TABLE appointments     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE invoices         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE invoice_items    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE clinical_notes   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_log        ENABLE ROW LEVEL SECURITY;
-
--- ── Función helper: obtiene el organization_id del usuario actual ──
-CREATE OR REPLACE FUNCTION current_org_id()
-RETURNS UUID LANGUAGE sql STABLE AS $$
-  SELECT organization_id FROM profiles WHERE id = auth.uid() LIMIT 1;
+-- ── Helpers: clínica y rol del usuario autenticado ─────────────────────────
+-- SECURITY DEFINER + STABLE: leen `usuarios` sin recursión de políticas.
+CREATE OR REPLACE FUNCTION clinica_actual()
+RETURNS UUID
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT clinica_id FROM usuarios WHERE id = auth.uid() LIMIT 1;
 $$;
 
--- ── Función helper: obtiene el rol del usuario actual ──
-CREATE OR REPLACE FUNCTION current_role_in_org()
-RETURNS user_role LANGUAGE sql STABLE AS $$
-  SELECT role FROM profiles WHERE id = auth.uid() LIMIT 1;
+CREATE OR REPLACE FUNCTION rol_actual()
+RETURNS user_role
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT rol FROM usuarios WHERE id = auth.uid() LIMIT 1;
 $$;
 
--- ── organizations: sólo visible por miembros del tenant ──
-CREATE POLICY "org_members_select" ON organizations
-  FOR SELECT USING (id = current_org_id());
+-- ── clinicas: cada quien ve SOLO su clínica; admin_clinica la administra ────
+DROP POLICY IF EXISTS clinicas_select ON clinicas;
+CREATE POLICY clinicas_select ON clinicas
+  FOR SELECT USING (id = clinica_actual());
 
-CREATE POLICY "admin_all_org" ON organizations
-  FOR ALL USING (id = current_org_id() AND current_role_in_org() = 'admin');
+DROP POLICY IF EXISTS clinicas_admin_all ON clinicas;
+CREATE POLICY clinicas_admin_all ON clinicas
+  FOR ALL
+  USING (id = clinica_actual() AND rol_actual() = 'admin_clinica')
+  WITH CHECK (id = clinica_actual() AND rol_actual() = 'admin_clinica');
 
--- ── profiles: cada usuario ve su propio perfil; admin ve todos los de su org ──
-CREATE POLICY "own_profile" ON profiles
-  FOR SELECT USING (id = auth.uid() OR organization_id = current_org_id());
+-- ── usuarios: ve su propia fila o los de su misma clínica; admin gestiona ───
+DROP POLICY IF EXISTS usuarios_select ON usuarios;
+CREATE POLICY usuarios_select ON usuarios
+  FOR SELECT USING (id = auth.uid() OR clinica_id = clinica_actual());
 
-CREATE POLICY "admin_manage_profiles" ON profiles
-  FOR ALL USING (organization_id = current_org_id() AND current_role_in_org() = 'admin');
+DROP POLICY IF EXISTS usuarios_self_insert ON usuarios;
+CREATE POLICY usuarios_self_insert ON usuarios
+  FOR INSERT WITH CHECK (id = auth.uid());
 
--- ── patients: médicos y admin de la misma org ──
-CREATE POLICY "org_patients_select" ON patients
-  FOR SELECT USING (
-    organization_id = current_org_id()
-    AND current_role_in_org() IN ('admin', 'medico')
+DROP POLICY IF EXISTS usuarios_self_update ON usuarios;
+CREATE POLICY usuarios_self_update ON usuarios
+  FOR UPDATE USING (id = auth.uid());
+
+DROP POLICY IF EXISTS usuarios_admin_all ON usuarios;
+CREATE POLICY usuarios_admin_all ON usuarios
+  FOR ALL
+  USING (clinica_id = clinica_actual() AND rol_actual() = 'admin_clinica')
+  WITH CHECK (clinica_id = clinica_actual() AND rol_actual() = 'admin_clinica');
+
+-- ── pacientes: aislados por clínica ─────────────────────────────────────────
+-- Personal clínico (admin/médico) ve y gestiona todos los de su clínica.
+DROP POLICY IF EXISTS pacientes_staff_all ON pacientes;
+CREATE POLICY pacientes_staff_all ON pacientes
+  FOR ALL
+  USING (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  )
+  WITH CHECK (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
   );
 
-CREATE POLICY "paciente_own" ON patients
-  FOR SELECT USING (
-    profile_id = auth.uid()
+-- El paciente con cuenta ve únicamente su propio registro.
+DROP POLICY IF EXISTS pacientes_propio ON pacientes;
+CREATE POLICY pacientes_propio ON pacientes
+  FOR SELECT USING (usuario_id = auth.uid());
+
+-- ── estudios: aislados por clínica ─────────────────────────────────────────
+DROP POLICY IF EXISTS estudios_staff_all ON estudios;
+CREATE POLICY estudios_staff_all ON estudios
+  FOR ALL
+  USING (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  )
+  WITH CHECK (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
   );
 
-CREATE POLICY "admin_medico_manage_patients" ON patients
-  FOR ALL USING (
-    organization_id = current_org_id()
-    AND current_role_in_org() IN ('admin', 'medico')
+-- El paciente ve los estudios ligados a su registro de paciente.
+DROP POLICY IF EXISTS estudios_paciente_select ON estudios;
+CREATE POLICY estudios_paciente_select ON estudios
+  FOR SELECT USING (
+    paciente_id IN (SELECT id FROM pacientes WHERE usuario_id = auth.uid())
   );
 
--- ── studies: médico ve los asignados a él; admin ve todos; paciente ve los suyos ──
-CREATE POLICY "doctor_studies" ON studies
+-- ── informes: aislados por clínica ─────────────────────────────────────────
+DROP POLICY IF EXISTS informes_staff_all ON informes;
+CREATE POLICY informes_staff_all ON informes
+  FOR ALL
+  USING (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  )
+  WITH CHECK (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  );
+
+-- El paciente sólo ve informes FIRMADOS de sus propios estudios.
+DROP POLICY IF EXISTS informes_paciente_select ON informes;
+CREATE POLICY informes_paciente_select ON informes
   FOR SELECT USING (
-    organization_id = current_org_id()
-    AND (
-      current_role_in_org() = 'admin'
-      OR doctor_id IN (SELECT id FROM doctors WHERE profile_id = auth.uid())
-      OR referring_doctor IN (SELECT id FROM doctors WHERE profile_id = auth.uid())
+    estado = 'firmado'
+    AND estudio_id IN (
+      SELECT e.id FROM estudios e
+      JOIN pacientes p ON p.id = e.paciente_id
+      WHERE p.usuario_id = auth.uid()
     )
   );
 
-CREATE POLICY "patient_own_studies" ON studies
-  FOR SELECT USING (
-    patient_id IN (SELECT id FROM patients WHERE profile_id = auth.uid())
-  );
+-- ─────────────────────────────────────────────
+-- 9. AUTO-APROVISIONAMIENTO DE USUARIO AL REGISTRARSE
+--    Al crear una fila en auth.users (signUp), se crea la fila en `usuarios`
+--    leyendo raw_user_meta_data: { nombre, apellido, rol, clinica_slug }.
+--
+--    SECURITY DEFINER permite que el INSERT ignore RLS durante el alta.
+--
+--    ⚠️  NOTA DE SEGURIDAD: permitir que el usuario elija su propio rol en el
+--        alta es cómodo para demos, pero en PRODUCCIÓN el rol 'admin_clinica'
+--        (y normalmente 'medico') debería ser asignado por un administrador
+--        existente, no auto-servido. Para endurecer: fuerza v_rol := 'paciente'
+--        aquí y promueve roles desde el panel de administración.
+-- ─────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.handle_new_usuario()
+RETURNS TRIGGER
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_rol     user_role;
+  v_clinica UUID;
+  v_nombre  TEXT;
+  v_apellido TEXT;
+BEGIN
+  BEGIN
+    v_rol := (NEW.raw_user_meta_data ->> 'rol')::user_role;
+  EXCEPTION WHEN others THEN
+    v_rol := 'paciente';
+  END;
+  IF v_rol IS NULL THEN v_rol := 'paciente'; END IF;
 
-CREATE POLICY "admin_medico_manage_studies" ON studies
-  FOR ALL USING (
-    organization_id = current_org_id()
-    AND current_role_in_org() IN ('admin', 'medico')
-  );
+  SELECT id INTO v_clinica
+  FROM clinicas
+  WHERE slug = (NEW.raw_user_meta_data ->> 'clinica_slug')
+  LIMIT 1;
 
--- ── appointments ──
-CREATE POLICY "org_appointments" ON appointments
-  FOR SELECT USING (organization_id = current_org_id());
+  IF v_clinica IS NULL THEN
+    SELECT id INTO v_clinica FROM clinicas WHERE activa = TRUE ORDER BY created_at LIMIT 1;
+  END IF;
 
-CREATE POLICY "patient_own_appointments" ON appointments
-  FOR SELECT USING (
-    patient_id IN (SELECT id FROM patients WHERE profile_id = auth.uid())
-  );
+  v_nombre   := COALESCE(NULLIF(TRIM(NEW.raw_user_meta_data ->> 'nombre'), ''), 'Usuario');
+  v_apellido := COALESCE(NULLIF(TRIM(NEW.raw_user_meta_data ->> 'apellido'), ''), split_part(NEW.email, '@', 1));
 
-CREATE POLICY "admin_medico_manage_appointments" ON appointments
-  FOR ALL USING (
-    organization_id = current_org_id()
-    AND current_role_in_org() IN ('admin', 'medico')
-  );
+  IF v_clinica IS NOT NULL THEN
+    INSERT INTO public.usuarios (id, clinica_id, rol, nombre, apellido, email)
+    VALUES (NEW.id, v_clinica, v_rol, v_nombre, v_apellido, NEW.email)
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
 
--- ── invoices ──
-CREATE POLICY "admin_invoices" ON invoices
-  FOR ALL USING (
-    organization_id = current_org_id()
-    AND current_role_in_org() = 'admin'
-  );
+  RETURN NEW;
+END;
+$$;
 
-CREATE POLICY "patient_own_invoices" ON invoices
-  FOR SELECT USING (
-    patient_id IN (SELECT id FROM patients WHERE profile_id = auth.uid())
-  );
-
--- ── clinical_notes: sólo médicos y admin ──
-CREATE POLICY "medico_admin_notes" ON clinical_notes
-  FOR ALL USING (
-    organization_id = current_org_id()
-    AND current_role_in_org() IN ('admin', 'medico')
-  );
-
--- ── audit_log: sólo admin puede leer, nadie puede borrar ──
-CREATE POLICY "admin_read_audit" ON audit_log
-  FOR SELECT USING (
-    organization_id = current_org_id()
-    AND current_role_in_org() = 'admin'
-  );
+-- Trigger activo: este es el schema canónico de la plataforma.
+DROP TRIGGER IF EXISTS on_auth_user_created_usuario ON auth.users;
+CREATE TRIGGER on_auth_user_created_usuario
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_usuario();
 
 -- ─────────────────────────────────────────────
--- 13. DATOS SEMILLA (seed mínimo para desarrollo)
+-- 10. SEED MÍNIMO (desarrollo)
 -- ─────────────────────────────────────────────
-INSERT INTO organizations (name, slug, country_code, currency, locale, timezone, plan)
+INSERT INTO clinicas (nombre, slug, pais, moneda, locale, zona_horaria, plan)
 VALUES
-  ('Clínica Demo MX',  'demo-mx', 'MX', 'MXN', 'es-MX', 'America/Mexico_City',   'professional'),
-  ('Clínica Demo BR',  'demo-br', 'BR', 'BRL', 'pt-BR', 'America/Sao_Paulo',     'starter'),
-  ('Clínica Demo AR',  'demo-ar', 'AR', 'ARS', 'es-AR', 'America/Argentina/Buenos_Aires', 'starter'),
-  ('Clínica Demo CO',  'demo-co', 'CO', 'COP', 'es-CO', 'America/Bogota',        'starter'),
-  ('Clínica Demo CL',  'demo-cl', 'CL', 'CLP', 'es-CL', 'America/Santiago',      'starter');
-
--- ─────────────────────────────────────────────
--- 14. MIGRACIÓN v0.2.0 — Módulo de Facturación
---     Nota: Las tablas `invoices` e `invoice_items` y sus políticas RLS
---     ya fueron creadas en la sección 9 y 12 de este mismo schema.
---     Los cambios de v0.2.0 son solo de frontend (BillingPage, hooks, helpers).
---
---     Si actualizas un proyecto existente, verifica que existan:
---       ✓ CREATE TABLE invoices (...)
---       ✓ CREATE TABLE invoice_items (...)
---       ✓ CREATE POLICY "admin_invoices" ON invoices ...
---       ✓ CREATE POLICY "patient_own_invoices" ON invoices ...
---       ✓ CREATE POLICY "admin_read_audit" ON audit_log ...
---
---     Índices de rendimiento adicionales recomendados para producción:
--- ─────────────────────────────────────────────
-CREATE INDEX IF NOT EXISTS idx_invoices_issued_at  ON invoices(issued_at DESC);
-CREATE INDEX IF NOT EXISTS idx_invoices_due_at     ON invoices(due_at);
-CREATE INDEX IF NOT EXISTS idx_invoices_currency   ON invoices(currency);
-CREATE INDEX IF NOT EXISTS idx_invoice_items_inv   ON invoice_items(invoice_id);
+  ('Clínica Demo MX', 'demo-mx', 'MX', 'MXN', 'es-MX', 'America/Mexico_City', 'professional'),
+  ('Clínica Demo CO', 'demo-co', 'CO', 'COP', 'es-CO', 'America/Bogota',      'starter')
+ON CONFLICT (slug) DO NOTHING;
 
 -- FIN DEL SCHEMA

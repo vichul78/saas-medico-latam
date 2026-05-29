@@ -21,15 +21,15 @@ import IrisAvatar        from '@/components/copilot/IrisAvatar.jsx';
  */
 
 const ROLE_LABEL = {
-  admin:    'Administrador',
-  medico:   'Médico',
-  paciente: 'Paciente',
+  admin_clinica: 'Administrador',
+  medico:        'Médico',
+  paciente:      'Paciente',
 };
 
 const ROLE_BADGE = {
-  admin:    'border-electric-500/40 bg-electric-500/10 text-electric-300',
-  medico:   'border-violet-500/40  bg-violet-500/10  text-violet-300',
-  paciente: 'border-electric-400/30 bg-electric-400/10 text-electric-300',
+  admin_clinica: 'border-electric-500/40 bg-electric-500/10 text-electric-300',
+  medico:        'border-violet-500/40  bg-violet-500/10  text-violet-300',
+  paciente:      'border-electric-400/30 bg-electric-400/10 text-electric-300',
 };
 
 export default function DashboardHeader({

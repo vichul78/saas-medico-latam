@@ -5,7 +5,7 @@ import DashboardShell from '@/components/dashboards/DashboardShell.jsx';
 
 /*
   Panel de administración.
-  Acceso exclusivo: role === 'admin'
+  Acceso exclusivo: role === 'admin_clinica'
   Muestra métricas globales del tenant, accesos rápidos y resumen operacional.
 */
 export default function AdminDashboard() {
@@ -13,7 +13,7 @@ export default function AdminDashboard() {
 
   return (
     <DashboardShell
-      role="admin"
+      role="admin_clinica"
       title="Panel de Administración"
       eyebrow="Panel general · Administrador"
       profile={profile}

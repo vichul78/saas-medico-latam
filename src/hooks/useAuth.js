@@ -9,8 +9,8 @@ import { AuthContext } from '@/context/AuthContext.jsx';
 
   Propiedades expuestas:
     session         — objeto Supabase Session | null
-    profile         — fila de `profiles` con join a `organizations` | null
-    role            — 'admin' | 'medico' | 'paciente' | null
+    profile         — perfil normalizado desde `usuarios`(+`clinicas`) | null
+    role            — 'admin_clinica' | 'medico' | 'paciente' | null
     organization    — datos de la org del usuario | null
     loading         — true mientras resuelve sesión/perfil inicial
     isAuthenticated — shorthand: !!session
