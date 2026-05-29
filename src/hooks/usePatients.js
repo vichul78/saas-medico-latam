@@ -123,10 +123,13 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
   }, [clinicaId, fetchPatients]);
 
   const updatePatient = useCallback(async (id, data) => {
+    if (!clinicaId) return { data: null, error: 'Sin clinica asociada' };
+
     const { data: updated, error: sbError } = await supabase
       .from('pacientes')
       .update(data)
       .eq('id', id)
+      .eq('clinica_id', clinicaId)
       .select()
       .single();
 
@@ -137,13 +140,16 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
 
     fetchPatients();
     return { data: updated, error: null };
-  }, [fetchPatients]);
+  }, [clinicaId, fetchPatients]);
 
   const deletePatient = useCallback(async (id) => {
+    if (!clinicaId) return { data: null, error: 'Sin clinica asociada' };
+
     const { error: sbError } = await supabase
       .from('pacientes')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('clinica_id', clinicaId);
 
     if (sbError) {
       console.error('[usePatients] delete error:', sbError);
@@ -152,7 +158,7 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
 
     fetchPatients();
     return { data: null, error: null };
-  }, [fetchPatients]);
+  }, [clinicaId, fetchPatients]);
 
   return {
     patients,

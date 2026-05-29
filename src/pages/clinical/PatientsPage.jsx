@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePatients } from '@/hooks/usePatients.js';
 import PatientDrawer   from '@/components/clinical/PatientDrawer.jsx';
 import Skeleton        from '@/components/common/Skeleton.jsx';
@@ -243,6 +243,9 @@ function PatientFormModal({ patient, onSave, onClose }) {
   const [saving,          setSaving]          = useState(false);
   const [formError,       setFormError]       = useState(null);
 
+  const nombreRef = useRef(null);
+  useEffect(() => { nombreRef.current?.focus(); }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!nombre.trim()) {
@@ -270,15 +273,23 @@ function PatientFormModal({ patient, onSave, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+    >
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       {/* Panel */}
-      <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.08]
-                      bg-clinical-900 p-6 shadow-2xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={patient ? 'Editar paciente' : 'Nuevo paciente'}
+        className="relative w-full max-w-lg rounded-2xl border border-white/[0.08]
+                      bg-clinical-900 p-6 shadow-2xl"
+      >
         <h2 className="mb-4 font-display text-xl font-bold text-white">
           {patient ? 'Editar paciente' : 'Nuevo paciente'}
         </h2>
@@ -297,6 +308,7 @@ function PatientFormModal({ patient, onSave, onClose }) {
                 Nombre *
               </label>
               <input
+                ref={nombreRef}
                 type="text"
                 value={nombre}
                 onChange={e => setNombre(e.target.value)}
