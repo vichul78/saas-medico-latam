@@ -371,6 +371,83 @@ CREATE TRIGGER on_auth_user_created_usuario
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_usuario();
 
 -- ─────────────────────────────────────────────
+-- 7.5. SHARE_TOKENS (compartir informes via WhatsApp / link temporal)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS share_tokens (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id  UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  informe_id  UUID NOT NULL REFERENCES informes(id) ON DELETE CASCADE,
+  token       TEXT UNIQUE NOT NULL,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  created_by  UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  accessed_at TIMESTAMPTZ,
+  metadata    JSONB DEFAULT '{}',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_share_tokens_token ON share_tokens(token);
+
+ALTER TABLE share_tokens ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS share_tokens_staff ON share_tokens;
+CREATE POLICY share_tokens_staff ON share_tokens
+  FOR ALL
+  USING (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  )
+  WITH CHECK (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  );
+
+-- ── Funcion publica para consultar un informe compartido via token ──────────
+CREATE OR REPLACE FUNCTION get_shared_informe(p_token TEXT)
+RETURNS TABLE (
+  informe_texto     TEXT,
+  informe_estado    informe_estado,
+  estudio_tipo      TEXT,
+  estudio_fecha     DATE,
+  paciente_nombre   TEXT,
+  paciente_apellido TEXT,
+  clinica_nombre    TEXT,
+  expires_at        TIMESTAMPTZ
+)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_share share_tokens%ROWTYPE;
+BEGIN
+  SELECT * INTO v_share
+  FROM share_tokens st
+  WHERE st.token = p_token
+    AND st.expires_at > NOW()
+  LIMIT 1;
+
+  IF v_share.id IS NULL THEN
+    RETURN;
+  END IF;
+
+  UPDATE share_tokens SET accessed_at = NOW() WHERE id = v_share.id;
+
+  RETURN QUERY
+  SELECT
+    i.texto          AS informe_texto,
+    i.estado         AS informe_estado,
+    e.tipo           AS estudio_tipo,
+    e.fecha          AS estudio_fecha,
+    p.nombre         AS paciente_nombre,
+    p.apellido       AS paciente_apellido,
+    c.nombre         AS clinica_nombre,
+    v_share.expires_at AS expires_at
+  FROM informes i
+  JOIN estudios e ON e.id = i.estudio_id
+  JOIN pacientes p ON p.id = e.paciente_id
+  JOIN clinicas c ON c.id = i.clinica_id
+  WHERE i.id = v_share.informe_id;
+END;
+$$;
+
+-- ─────────────────────────────────────────────
 -- 10. SEED MÍNIMO (desarrollo)
 -- ─────────────────────────────────────────────
 INSERT INTO clinicas (nombre, slug, pais, moneda, locale, zona_horaria, plan)
