@@ -30,8 +30,8 @@ const ROLE_HOME = {
 
 const ROLE_OPTIONS = [
   { value: 'paciente',      label: 'Paciente' },
-  { value: 'medico',        label: 'Médico / Profesional' },
-  { value: 'admin_clinica', label: 'Administrador de clínica' },
+  { value: 'medico',        label: 'Medico / Profesional' },
+  { value: 'admin_clinica', label: 'Admin Clinica' },
 ];
 
 export default function Register() {
@@ -44,7 +44,7 @@ export default function Register() {
   const [email,     setEmail]     = useState('');
   const [password,  setPassword]  = useState('');
   const [showPwd,   setShowPwd]   = useState(false);
-  const [roleSel,   setRoleSel]   = useState('paciente');
+  const [roleSel,   setRoleSel]   = useState('');
   const [clinicaSlug, setClinicaSlug] = useState('');
 
   const [error,      setError]      = useState('');
@@ -65,6 +65,10 @@ export default function Register() {
 
     if (password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (!roleSel) {
+      setError('Selecciona un tipo de cuenta.');
       return;
     }
 
@@ -238,10 +242,16 @@ export default function Register() {
                     id="role"
                     value={roleSel}
                     onChange={e => setRoleSel(e.target.value)}
-                    className="dark-input w-full"
+                    className="dark-input w-full appearance-auto"
+                    required
                   >
+                    <option value="" disabled className="bg-[#0f0f18] text-clinical-500">
+                      Seleccionar tipo de cuenta
+                    </option>
                     {ROLE_OPTIONS.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value} className="bg-[#0f0f18] text-white">
+                        {o.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -275,7 +285,7 @@ export default function Register() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  disabled={submitting || !email || !password || !firstName || !lastName}
+                  disabled={submitting || !email || !password || !firstName || !lastName || !roleSel}
                   className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-electric-gradient py-3 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(122,34,255,0.6)] transition hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-electric-400"
                 >
                   {submitting ? <Spinner /> : 'Crear cuenta'}
