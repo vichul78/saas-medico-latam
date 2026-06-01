@@ -148,52 +148,43 @@ CREATE TRIGGER trg_pacientes_updated_at
 -- 6. ESTUDIOS  (imágenes / pruebas asociadas a un paciente)
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS estudios (
-  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  clinica_id       UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
-  paciente_id      UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
-  medico_id        UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- radiólogo asignado
-  medico_referente UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-  modalidad        TEXT,                    -- CT | MR | DX | US | ECG …
-  descripcion      TEXT,
-  estado           estudio_estado NOT NULL DEFAULT 'recibido',
-  prioridad        TEXT NOT NULL DEFAULT 'rutina',  -- rutina | urgente | stat
-  accession_number TEXT UNIQUE,             -- nº de acceso DICOM / RIS
-  dicom_study_uid  TEXT UNIQUE,             -- 0020,000D Study Instance UID
-  storage_path     TEXT,                    -- ruta en Supabase Storage
-  fecha_estudio    DATE NOT NULL DEFAULT CURRENT_DATE,
-  metadata         JSONB DEFAULT '{}',
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id        UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  paciente_id       UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  medico_id         UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- radiólogo asignado
+  tipo              TEXT NOT NULL,                 -- CT | MR | DX | US | ECG | ecografía …
+  fecha             DATE NOT NULL DEFAULT CURRENT_DATE,
+  archivo_dicom_url TEXT,                          -- URL del DICOM en Supabase Storage
+  estado            estudio_estado NOT NULL DEFAULT 'recibido',
+  metadata          JSONB DEFAULT '{}',
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_estudios_clinica  ON estudios(clinica_id);
 CREATE INDEX IF NOT EXISTS idx_estudios_paciente ON estudios(paciente_id);
 CREATE INDEX IF NOT EXISTS idx_estudios_estado   ON estudios(estado);
-CREATE INDEX IF NOT EXISTS idx_estudios_fecha    ON estudios(fecha_estudio DESC);
+CREATE INDEX IF NOT EXISTS idx_estudios_fecha    ON estudios(fecha DESC);
 
 CREATE TRIGGER trg_estudios_updated_at
   BEFORE UPDATE ON estudios
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- ─────────────────────────────────────────────
--- 7. INFORMES  (reporte clínico firmado de un estudio)
+-- 7. INFORMES  (reporte clínico de un estudio; puede ser generado por IA)
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS informes (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  clinica_id    UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
-  estudio_id    UUID NOT NULL REFERENCES estudios(id) ON DELETE CASCADE,
-  medico_id     UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- autor del informe
-  titulo        TEXT,
-  hallazgos     TEXT,                     -- cuerpo del informe
-  impresion     TEXT,                     -- impresión diagnóstica / conclusión
-  contenido_html TEXT,                    -- versión renderizada / firmada
-  estado        informe_estado NOT NULL DEFAULT 'borrador',
-  cie10_codes   TEXT[],                   -- diagnósticos CIE-10
-  firmado_at    TIMESTAMPTZ,
-  firmado_por   UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-  metadata      JSONB DEFAULT '{}',
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id      UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  estudio_id      UUID NOT NULL REFERENCES estudios(id) ON DELETE CASCADE,
+  medico_id       UUID REFERENCES usuarios(id) ON DELETE SET NULL,   -- autor / responsable
+  texto           TEXT,                              -- cuerpo del informe
+  estado          informe_estado NOT NULL DEFAULT 'borrador',
+  generado_por_ia BOOLEAN NOT NULL DEFAULT FALSE,    -- ¿lo generó el copiloto IA?
+  firmado_at      TIMESTAMPTZ,
+  metadata        JSONB DEFAULT '{}',
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_informes_clinica ON informes(clinica_id);
@@ -378,6 +369,83 @@ DROP TRIGGER IF EXISTS on_auth_user_created_usuario ON auth.users;
 CREATE TRIGGER on_auth_user_created_usuario
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_usuario();
+
+-- ─────────────────────────────────────────────
+-- 7.5. SHARE_TOKENS (compartir informes via WhatsApp / link temporal)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS share_tokens (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id  UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  informe_id  UUID NOT NULL REFERENCES informes(id) ON DELETE CASCADE,
+  token       TEXT UNIQUE NOT NULL,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  created_by  UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  accessed_at TIMESTAMPTZ,
+  metadata    JSONB DEFAULT '{}',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_share_tokens_token ON share_tokens(token);
+
+ALTER TABLE share_tokens ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS share_tokens_staff ON share_tokens;
+CREATE POLICY share_tokens_staff ON share_tokens
+  FOR ALL
+  USING (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  )
+  WITH CHECK (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  );
+
+-- ── Funcion publica para consultar un informe compartido via token ──────────
+CREATE OR REPLACE FUNCTION get_shared_informe(p_token TEXT)
+RETURNS TABLE (
+  informe_texto     TEXT,
+  informe_estado    informe_estado,
+  estudio_tipo      TEXT,
+  estudio_fecha     DATE,
+  paciente_nombre   TEXT,
+  paciente_apellido TEXT,
+  clinica_nombre    TEXT,
+  expires_at        TIMESTAMPTZ
+)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_share share_tokens%ROWTYPE;
+BEGIN
+  SELECT * INTO v_share
+  FROM share_tokens st
+  WHERE st.token = p_token
+    AND st.expires_at > NOW()
+  LIMIT 1;
+
+  IF v_share.id IS NULL THEN
+    RETURN;
+  END IF;
+
+  UPDATE share_tokens SET accessed_at = NOW() WHERE id = v_share.id;
+
+  RETURN QUERY
+  SELECT
+    i.texto          AS informe_texto,
+    i.estado         AS informe_estado,
+    e.tipo           AS estudio_tipo,
+    e.fecha          AS estudio_fecha,
+    p.nombre         AS paciente_nombre,
+    p.apellido       AS paciente_apellido,
+    c.nombre         AS clinica_nombre,
+    v_share.expires_at AS expires_at
+  FROM informes i
+  JOIN estudios e ON e.id = i.estudio_id
+  JOIN pacientes p ON p.id = e.paciente_id
+  JOIN clinicas c ON c.id = i.clinica_id
+  WHERE i.id = v_share.informe_id;
+END;
+$$;
 
 -- ─────────────────────────────────────────────
 -- 10. SEED MÍNIMO (desarrollo)

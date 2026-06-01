@@ -13,6 +13,7 @@ import RoleRedirect   from '@/components/auth/RoleRedirect.jsx';
 import Login    from '@/pages/Login.jsx';
 import Register from '@/pages/Register.jsx';
 import NotFound from '@/pages/NotFound.jsx';
+import ResultadoPublico from '@/pages/public/ResultadoPublico.jsx';
 
 // ── Páginas del sitio (acceso público + autenticado) ─────────────────────────
 import LandingPage from '@/pages/LandingPage.jsx';  // ← nueva landing pública
@@ -29,6 +30,8 @@ import PacienteDashboard from '@/pages/dashboards/PacienteDashboard.jsx';
 // ── Módulos clínicos ──────────────────────────────────────────────────────────
 import PatientsPage     from '@/pages/clinical/PatientsPage.jsx';
 import AppointmentsPage from '@/pages/clinical/AppointmentsPage.jsx';
+import EstudiosPage     from '@/pages/clinical/EstudiosPage.jsx';
+import InformesPage     from '@/pages/clinical/InformesPage.jsx';
 import VisorDicomPage   from '@/pages/features/tech/VisorDicom.jsx';
 import BillingPage      from '@/pages/billing/BillingPage.jsx';
 
@@ -118,6 +121,13 @@ export const router = createBrowserRouter([
     errorElement: <NotFound />,
   },
 
+  // ── 1c. Visor publico de resultados compartidos (sin layout) ──────────────
+  {
+    path:         '/resultado/:token',
+    element:      <ResultadoPublico />,
+    errorElement: <NotFound />,
+  },
+
   // ── 2. DashboardLayout — área autenticada ─────────────────────────────────
   //    Tiene su propio header oscuro, sidebar colapsable y copiloto dark.
   //    Todas las rutas aquí requieren sesión; el guard está por rol.
@@ -161,6 +171,8 @@ export const router = createBrowserRouter([
           { path: 'pacientes', element: <PatientsPage /> },
           { path: 'citas',     element: <AppointmentsPage /> },
           { path: 'visor',     element: <VisorDicomPage /> },
+          { path: 'estudios',  element: <EstudiosPage /> },
+          { path: 'informes',  element: <InformesPage /> },
         ],
       },
 

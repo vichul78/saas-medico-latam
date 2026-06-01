@@ -3,29 +3,32 @@ import { supabase } from '@/lib/supabaseClient.js';
 import { useAuth } from '@/hooks/useAuth.js';
 
 /*
-  usePatients — lista paginada de pacientes con búsqueda en tiempo real.
+  usePatients — lista paginada de pacientes con busqueda en tiempo real.
 
-  Respeta RLS: solo devuelve pacientes de la organización del usuario autenticado.
-  La política "org_patients_select" filtra automáticamente por organization_id
-  usando la función current_org_id() definida en el schema.
+  Consulta la tabla `pacientes` (schema en espanol).
+  Filtra por clinica_id = profile.organization_id del usuario autenticado.
 
   @param {object} opts
-    search   : string — texto libre para filtrar por nombre / id nacional
-    pageSize : number — registros por página (default 25)
+    search   : string — texto libre para filtrar por nombre / apellido / documento
+    pageSize : number — registros por pagina (default 25)
 
   @returns {{
-    patients     : array,
-    loading      : bool,
-    error        : string | null,
-    totalCount   : number,
-    page         : number,
-    setPage      : fn,
-    refresh      : fn,
+    patients       : array,
+    loading        : bool,
+    error          : string | null,
+    totalCount     : number,
+    page           : number,
+    setPage        : fn,
+    refresh        : fn,
+    pageSize       : number,
+    createPatient  : fn,
+    updatePatient  : fn,
+    deletePatient  : fn,
   }}
 */
 export function usePatients({ search = '', pageSize = 25 } = {}) {
-  const { organization } = useAuth();
-  const orgId = organization?.id ?? null;
+  const { profile } = useAuth();
+  const clinicaId = profile?.organization_id ?? null;
 
   const [patients,   setPatients]   = useState([]);
   const [loading,    setLoading]    = useState(true);
@@ -33,11 +36,10 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
   const [totalCount, setTotalCount] = useState(0);
   const [page,       setPage]       = useState(1);
 
-  // Cancelación de fetch obsoleto cuando el componente desmonta o cambia búsqueda
   const abortRef = useRef(false);
 
   const fetchPatients = useCallback(async () => {
-    if (!orgId) return;
+    if (!clinicaId) return;
 
     abortRef.current = false;
     setLoading(true);
@@ -48,22 +50,21 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
 
     try {
       let query = supabase
-        .from('patients')
+        .from('pacientes')
         .select(
-          `id, first_name, last_name, date_of_birth, biological_sex,
-           national_id, national_id_type, phone, email, city,
-           country_code, blood_type, allergies, created_at`,
+          `id, nombre, apellido, fecha_nacimiento, sexo,
+           documento, documento_tipo, telefono, email,
+           direccion, ciudad, alergias, notas, created_at, updated_at`,
           { count: 'exact' },
         )
-        .eq('organization_id', orgId)
-        .order('last_name', { ascending: true })
+        .eq('clinica_id', clinicaId)
+        .order('apellido', { ascending: true })
         .range(from, to);
 
-      // Búsqueda: nombre completo o id nacional (ilike = case-insensitive)
       if (search.trim()) {
         const term = `%${search.trim()}%`;
         query = query.or(
-          `first_name.ilike.${term},last_name.ilike.${term},national_id.ilike.${term}`,
+          `nombre.ilike.${term},apellido.ilike.${term},documento.ilike.${term}`,
         );
       }
 
@@ -72,12 +73,10 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
       if (abortRef.current) return;
 
       if (sbError) {
-        // Estrategia híbrida: log original EN en consola, estado en español
-        // eslint-disable-next-line no-console
-        console.error('[usePatients] Supabase error (EN):', {
+        console.error('[usePatients] Supabase error:', {
           code: sbError.code, message: sbError.message, details: sbError.details,
         });
-        setError('No se pudieron cargar los pacientes. Verifica la conexión.');
+        setError('No se pudieron cargar los pacientes. Verifica la conexion.');
         setPatients([]);
       } else {
         setPatients(data ?? []);
@@ -85,17 +84,15 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
       }
     } catch (err) {
       if (!abortRef.current) {
-        // eslint-disable-next-line no-console
         console.error('[usePatients] Unexpected error:', err);
         setError('Error inesperado al obtener pacientes.');
       }
     } finally {
       if (!abortRef.current) setLoading(false);
     }
-  }, [orgId, search, page, pageSize]);
+  }, [clinicaId, search, page, pageSize]);
 
   useEffect(() => {
-    // Cuando cambia la búsqueda, regresamos a la página 1
     setPage(1);
   }, [search]);
 
@@ -103,6 +100,65 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
     fetchPatients();
     return () => { abortRef.current = true; };
   }, [fetchPatients]);
+
+  /* ── CRUD ── */
+
+  const createPatient = useCallback(async (data) => {
+    if (!clinicaId) return { data: null, error: 'Sin clinica asociada' };
+
+    const payload = { ...data, clinica_id: clinicaId };
+    const { data: created, error: sbError } = await supabase
+      .from('pacientes')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (sbError) {
+      console.error('[usePatients] create error:', sbError);
+      return { data: null, error: sbError.message };
+    }
+
+    fetchPatients();
+    return { data: created, error: null };
+  }, [clinicaId, fetchPatients]);
+
+  const updatePatient = useCallback(async (id, data) => {
+    if (!clinicaId) return { data: null, error: 'Sin clinica asociada' };
+
+    const { data: updated, error: sbError } = await supabase
+      .from('pacientes')
+      .update(data)
+      .eq('id', id)
+      .eq('clinica_id', clinicaId)
+      .select()
+      .single();
+
+    if (sbError) {
+      console.error('[usePatients] update error:', sbError);
+      return { data: null, error: sbError.message };
+    }
+
+    fetchPatients();
+    return { data: updated, error: null };
+  }, [clinicaId, fetchPatients]);
+
+  const deletePatient = useCallback(async (id) => {
+    if (!clinicaId) return { data: null, error: 'Sin clinica asociada' };
+
+    const { error: sbError } = await supabase
+      .from('pacientes')
+      .delete()
+      .eq('id', id)
+      .eq('clinica_id', clinicaId);
+
+    if (sbError) {
+      console.error('[usePatients] delete error:', sbError);
+      return { data: null, error: sbError.message };
+    }
+
+    fetchPatients();
+    return { data: null, error: null };
+  }, [clinicaId, fetchPatients]);
 
   return {
     patients,
@@ -113,5 +169,8 @@ export function usePatients({ search = '', pageSize = 25 } = {}) {
     setPage,
     refresh: fetchPatients,
     pageSize,
+    createPatient,
+    updatePatient,
+    deletePatient,
   };
 }
