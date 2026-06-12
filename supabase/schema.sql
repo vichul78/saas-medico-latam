@@ -457,3 +457,107 @@ VALUES
 ON CONFLICT (slug) DO NOTHING;
 
 -- FIN DEL SCHEMA
+
+-- ─────────────────────────────────────────────
+-- 11. CITAS
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS citas (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  clinica_id  UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  paciente_id UUID REFERENCES pacientes(id) ON DELETE SET NULL,
+  medico_id   UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  fecha       DATE NOT NULL,
+  hora        TIME,
+  estado      TEXT NOT NULL DEFAULT 'pendiente'
+              CHECK (estado IN ('pendiente', 'confirmada', 'cancelada', 'completada', 'no_asistio')),
+  tipo        TEXT,
+  notas       TEXT,
+  metadata    JSONB DEFAULT '{}',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_citas_clinica_fecha   ON citas(clinica_id, fecha);
+CREATE INDEX IF NOT EXISTS idx_citas_paciente        ON citas(paciente_id);
+CREATE INDEX IF NOT EXISTS idx_citas_medico          ON citas(medico_id);
+
+ALTER TABLE citas ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS citas_staff ON citas;
+CREATE POLICY citas_staff ON citas
+  FOR ALL
+  USING (clinica_id = clinica_actual())
+  WITH CHECK (clinica_id = clinica_actual());
+
+-- ─────────────────────────────────────────────
+-- 12. FACTURAS
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS facturas (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  clinica_id  UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  paciente_id UUID REFERENCES pacientes(id) ON DELETE SET NULL,
+  monto       NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  moneda      TEXT NOT NULL DEFAULT 'USD',
+  estado      TEXT NOT NULL DEFAULT 'pendiente'
+              CHECK (estado IN ('pendiente', 'pagada', 'vencida', 'anulada')),
+  concepto    TEXT,
+  metadata    JSONB DEFAULT '{}',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_facturas_clinica_estado ON facturas(clinica_id, estado);
+CREATE INDEX IF NOT EXISTS idx_facturas_paciente       ON facturas(paciente_id);
+
+ALTER TABLE facturas ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS facturas_staff ON facturas;
+CREATE POLICY facturas_staff ON facturas
+  FOR ALL
+  USING (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  )
+  WITH CHECK (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico')
+  );
+
+-- ─────────────────────────────────────────────
+-- 13. AUDIT LOGS
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  clinica_id  UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  usuario_id  UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  accion      TEXT NOT NULL,           -- ej: 'crear', 'editar', 'firmar', 'enviar_whatsapp'
+  tabla       TEXT NOT NULL,           -- ej: 'informes', 'estudios'
+  registro_id UUID,                    -- ID del registro afectado
+  cambios     JSONB,                   -- diff opcional { antes, despues }
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_clinica      ON audit_logs(clinica_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_usuario      ON audit_logs(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_audit_tabla_reg    ON audit_logs(tabla, registro_id);
+
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- Solo admin puede leer audit logs
+DROP POLICY IF EXISTS audit_logs_admin_read ON audit_logs;
+CREATE POLICY audit_logs_admin_read ON audit_logs
+  FOR SELECT
+  USING (
+    clinica_id = clinica_actual()
+    AND rol_actual() = 'admin_clinica'
+  );
+
+-- Staff puede insertar (insert-only, no update/delete)
+DROP POLICY IF EXISTS audit_logs_insert ON audit_logs;
+CREATE POLICY audit_logs_insert ON audit_logs
+  FOR INSERT
+  WITH CHECK (
+    clinica_id = clinica_actual()
+    AND rol_actual() IN ('admin_clinica', 'medico', 'tecnico')
+  );
+

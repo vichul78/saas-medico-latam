@@ -19,10 +19,13 @@ export function useDashboardMetrics() {
   const clinicaId = profile?.organization_id ?? null;
 
   const [metrics, setMetrics] = useState({
-    totalPacientes: 0,
-    estudiosHoy: 0,
+    totalPacientes:    0,
+    estudiosHoy:       0,
     informesPendientes: 0,
     estudiosRecientes: [],
+    citasMes:          0,
+    ingresosMes:       0,
+    tendenciaEstudios: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,7 +40,19 @@ export function useDashboardMetrics() {
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
       // Ejecutar queries en paralelo
-      const [pacientesRes, estudiosHoyRes, informesPendRes, recientesRes] = await Promise.all([
+      // Fechas para queries de período
+      const hace30Dias = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const hace7Dias  = new Date(Date.now() - 7  * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      const [
+        pacientesRes,
+        estudiosHoyRes,
+        informesPendRes,
+        recientesRes,
+        citasMesRes,
+        ingresosMesRes,
+        estudios7dRes,
+      ] = await Promise.all([
         // 1. Total pacientes
         supabase
           .from('pacientes')
@@ -68,23 +83,63 @@ export function useDashboardMetrics() {
           .eq('clinica_id', clinicaId)
           .order('created_at', { ascending: false })
           .limit(5),
+
+        // 5. Citas del mes (últimos 30 días)
+        supabase
+          .from('citas')
+          .select('id', { count: 'exact', head: true })
+          .eq('clinica_id', clinicaId)
+          .gte('created_at', hace30Dias),
+
+        // 6. Ingresos del mes (facturas pagadas, últimos 30 días)
+        supabase
+          .from('facturas')
+          .select('monto')
+          .eq('clinica_id', clinicaId)
+          .eq('estado', 'pagada')
+          .gte('created_at', hace30Dias),
+
+        // 7. Estudios por día últimos 7 días (para sparkline)
+        supabase
+          .from('estudios')
+          .select('fecha')
+          .eq('clinica_id', clinicaId)
+          .gte('fecha', hace7Dias)
+          .order('fecha', { ascending: true }),
       ]);
 
-      // Verificar errores
-      const errors = [pacientesRes, estudiosHoyRes, informesPendRes, recientesRes]
+      // Verificar errores (citas/facturas pueden fallar si tabla no existe aún — ignorar)
+      const criticalErrors = [pacientesRes, estudiosHoyRes, informesPendRes, recientesRes]
         .filter(r => r.error)
         .map(r => r.error.message);
 
-      if (errors.length > 0) {
-        console.error('[useDashboardMetrics] Supabase errors:', errors);
+      if (criticalErrors.length > 0) {
+        console.error('[useDashboardMetrics] Supabase errors:', criticalErrors);
         setError('Error al cargar metricas del dashboard.');
       }
 
+      // Calcular ingresos totales del mes
+      const ingresosMes = (ingresosMesRes.data ?? [])
+        .reduce((sum, f) => sum + (parseFloat(f.monto) || 0), 0);
+
+      // Agrupar estudios por día para sparkline (últimos 7 días)
+      const hoy = new Date();
+      const tendencia = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(hoy);
+        d.setDate(d.getDate() - (6 - i));
+        const key = d.toISOString().split('T')[0];
+        const count = (estudios7dRes.data ?? []).filter(e => e.fecha === key).length;
+        return { fecha: key, count };
+      });
+
       setMetrics({
-        totalPacientes: pacientesRes.count ?? 0,
-        estudiosHoy: estudiosHoyRes.count ?? 0,
+        totalPacientes:    pacientesRes.count ?? 0,
+        estudiosHoy:       estudiosHoyRes.count ?? 0,
         informesPendientes: informesPendRes.count ?? 0,
         estudiosRecientes: recientesRes.data ?? [],
+        citasMes:          citasMesRes.count ?? 0,
+        ingresosMes,
+        tendenciaEstudios: tendencia,
       });
     } catch (err) {
       console.error('[useDashboardMetrics] Unexpected error:', err);

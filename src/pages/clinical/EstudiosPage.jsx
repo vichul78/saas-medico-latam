@@ -165,8 +165,29 @@ export default function EstudiosPage() {
         </div>
       )}
 
-      {/* Tabla */}
-      <div className="overflow-hidden rounded-xl border border-white/[0.07]
+      {/* Vista móvil — cards (solo < sm) */}
+      <div className="block sm:hidden space-y-3">
+        {loading && (
+          <div className="space-y-3">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="h-28 animate-pulse rounded-xl bg-white/[0.05]" />
+            ))}
+          </div>
+        )}
+        {!loading && estudios.length === 0 && !error && (
+          <p className="py-12 text-center text-sm text-clinical-500">
+            {query || estadoFilter
+              ? 'Sin resultados para los filtros aplicados.'
+              : 'No hay estudios registrados en esta clinica.'}
+          </p>
+        )}
+        {!loading && estudios.map(est => (
+          <EstudioCard key={est.id} estudio={est} />
+        ))}
+      </div>
+
+      {/* Vista desktop — tabla (sm+) */}
+      <div className="hidden sm:block overflow-hidden rounded-xl border border-white/[0.07]
                       bg-white/[0.03]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
@@ -251,6 +272,35 @@ export default function EstudiosPage() {
 }
 
 /* -- Fila individual -- */
+/* -- Card mobile para estudios -- */
+function EstudioCard({ estudio }) {
+  const paciente = estudio.pacientes;
+  const name = paciente
+    ? `${paciente.nombre} ${paciente.apellido ?? ''}`.trim()
+    : 'Paciente desconocido';
+  const estadoUI = ESTADO_DB_TO_UI[estudio.estado] ?? 'pendiente';
+  const medicoSolicitante = estudio.metadata?.medico_solicitante ?? null;
+
+  return (
+    <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4 space-y-2">
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-semibold text-white text-sm leading-tight">{name}</p>
+        <EstadoBadge estado={estadoUI} />
+      </div>
+      <p className="text-xs text-clinical-300">
+        <span className="text-clinical-500">Tipo:</span>{' '}
+        {estudio.tipo ?? '-'}
+      </p>
+      <div className="flex items-center gap-4 text-xs text-clinical-400">
+        <span>{estudio.fecha ? fmtDate(estudio.fecha) : 'Sin fecha'}</span>
+        {medicoSolicitante && (
+          <span className="text-clinical-500">Dr. {medicoSolicitante}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function EstudioRow({ estudio }) {
   const paciente = estudio.pacientes;
   const name = paciente

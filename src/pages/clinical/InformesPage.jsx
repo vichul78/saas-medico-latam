@@ -3,6 +3,7 @@ import { useInformes } from '@/hooks/useInformes.js';
 import { useEstudios } from '@/hooks/useEstudios.js';
 import { generateInformeIA } from '@/lib/anthropicClient.js';
 import EnviarWhatsappBtn from '@/components/clinical/EnviarWhatsappBtn.jsx';
+import SendWhatsAppModal from '@/components/clinical/SendWhatsAppModal.jsx';
 import Skeleton from '@/components/common/Skeleton.jsx';
 
 /*
@@ -55,6 +56,8 @@ export default function InformesPage() {
   } = useInformes({ search: query, estado: estadoFilter });
 
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  const [waInforme, setWaInforme] = useState(null);
 
   const openNew = () => { setEditInforme(null); setFormOpen(true); };
   const openEdit = (informe) => { setEditInforme(informe); setFormOpen(true); };
@@ -167,8 +170,34 @@ export default function InformesPage() {
         </div>
       )}
 
-      {/* Tabla */}
-      <div className="overflow-hidden rounded-xl border border-white/[0.07]
+      {/* Vista móvil — cards (solo < sm) */}
+      <div className="block sm:hidden space-y-3">
+        {loading && (
+          <div className="space-y-3">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="h-28 animate-pulse rounded-xl bg-white/[0.05]" />
+            ))}
+          </div>
+        )}
+        {!loading && informes.length === 0 && !error && (
+          <p className="py-12 text-center text-sm text-clinical-500">
+            {query || estadoFilter
+              ? 'Sin resultados para los filtros aplicados.'
+              : 'No hay informes registrados en esta clinica.'}
+          </p>
+        )}
+        {!loading && informes.map(inf => (
+          <InformeCard
+            key={inf.id}
+            informe={inf}
+            onEdit={openEdit}
+            onWhatsApp={() => setWaInforme(inf)}
+          />
+        ))}
+      </div>
+
+      {/* Vista desktop — tabla (sm+) */}
+      <div className="hidden sm:block overflow-hidden rounded-xl border border-white/[0.07]
                       bg-white/[0.03]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
@@ -200,7 +229,12 @@ export default function InformesPage() {
               )}
 
               {!loading && informes.map(inf => (
-                <InformeRow key={inf.id} informe={inf} onEdit={openEdit} />
+                <InformeRow
+                  key={inf.id}
+                  informe={inf}
+                  onEdit={openEdit}
+                  onWhatsApp={() => setWaInforme(inf)}
+                />
               ))}
             </tbody>
           </table>
@@ -250,17 +284,74 @@ export default function InformesPage() {
           onClose={closeForm}
         />
       )}
+
+      {/* Modal WhatsApp — por fila */}
+      {waInforme && (
+        <SendWhatsAppModal
+          informe={waInforme}
+          onClose={() => setWaInforme(null)}
+        />
+      )}
     </>
   );
 }
 
-/* -- Fila individual -- */
-function InformeRow({ informe, onEdit }) {
+/* -- Card mobile para informes -- */
+function InformeCard({ informe, onEdit, onWhatsApp }) {
   const estudio = informe.estudios;
   const paciente = estudio?.pacientes;
   const name = paciente
     ? `${paciente.nombre} ${paciente.apellido ?? ''}`.trim()
     : 'Paciente desconocido';
+  const esFirmado = informe.estado === 'firmado';
+
+  return (
+    <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4 space-y-2">
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-semibold text-white text-sm leading-tight">{name}</p>
+        <EstadoBadge estado={informe.estado} />
+      </div>
+      <p className="text-xs text-clinical-300">
+        <span className="text-clinical-500">Estudio:</span>{' '}
+        {estudio?.tipo ?? '-'}
+      </p>
+      <p className="text-xs text-clinical-400">
+        {estudio?.fecha ? fmtDate(estudio.fecha) : 'Sin fecha'}
+      </p>
+      <div className="flex items-center gap-2 pt-1">
+        <button
+          type="button"
+          onClick={() => onEdit(informe)}
+          className="rounded-lg border border-white/[0.1] bg-white/[0.05]
+                     px-3 py-1.5 text-xs font-medium text-clinical-300
+                     transition hover:bg-white/[0.08] hover:text-white"
+        >
+          Editar
+        </button>
+        {esFirmado && (
+          <button
+            type="button"
+            onClick={onWhatsApp}
+            className="rounded-lg border border-emerald-400/30 bg-emerald-500/10
+                       px-3 py-1.5 text-xs font-medium text-emerald-300
+                       transition hover:bg-emerald-500/20"
+          >
+            WhatsApp
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* -- Fila individual -- */
+function InformeRow({ informe, onEdit, onWhatsApp }) {
+  const estudio = informe.estudios;
+  const paciente = estudio?.pacientes;
+  const name = paciente
+    ? `${paciente.nombre} ${paciente.apellido ?? ''}`.trim()
+    : 'Paciente desconocido';
+  const esFirmado = informe.estado === 'firmado';
 
   return (
     <tr className="border-b border-white/[0.04] transition hover:bg-electric-500/[0.06]">
@@ -277,15 +368,28 @@ function InformeRow({ informe, onEdit }) {
         <EstadoBadge estado={informe.estado} />
       </td>
       <td className="px-4 py-3">
-        <button
-          type="button"
-          onClick={() => onEdit(informe)}
-          className="rounded-lg border border-white/[0.1] bg-white/[0.05]
-                     px-3 py-1.5 text-xs font-medium text-clinical-300
-                     transition hover:bg-white/[0.08] hover:text-white"
-        >
-          Editar
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onEdit(informe)}
+            className="rounded-lg border border-white/[0.1] bg-white/[0.05]
+                       px-3 py-1.5 text-xs font-medium text-clinical-300
+                       transition hover:bg-white/[0.08] hover:text-white"
+          >
+            Editar
+          </button>
+          {esFirmado && (
+            <button
+              type="button"
+              onClick={onWhatsApp}
+              className="rounded-lg border border-emerald-400/30 bg-emerald-500/10
+                         px-3 py-1.5 text-xs font-medium text-emerald-300
+                         transition hover:bg-emerald-500/20"
+            >
+              WhatsApp
+            </button>
+          )}
+        </div>
       </td>
     </tr>
   );

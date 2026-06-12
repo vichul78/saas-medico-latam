@@ -36,8 +36,8 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* KPI cards con datos reales */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* KPI cards con datos reales — 6 tarjetas */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <KpiCard
           label="Total Pacientes"
           value={loading ? '...' : metrics.totalPacientes.toLocaleString('es')}
@@ -60,6 +60,20 @@ export default function AdminDashboard() {
           icon="📋"
         />
         <KpiCard
+          label="Citas del Mes"
+          value={loading ? '...' : metrics.citasMes.toLocaleString('es')}
+          delta="ultimos 30 dias"
+          accent="violet"
+          icon="📅"
+        />
+        <KpiCard
+          label="Ingresos del Mes"
+          value={loading ? '...' : `${metrics.ingresosMes.toLocaleString('es', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          delta="facturas pagadas"
+          accent="electric"
+          icon="💰"
+        />
+        <KpiCard
           label="Estudios Recientes"
           value={loading ? '...' : metrics.estudiosRecientes.length.toString()}
           delta="ultimos registros"
@@ -67,6 +81,16 @@ export default function AdminDashboard() {
           icon="📊"
         />
       </div>
+
+      {/* Sparkline — estudios por dia (últimos 7 días) */}
+      {!loading && metrics.tendenciaEstudios?.length > 0 && (
+        <section className="card-clinical">
+          <h2 className="mb-4 font-display text-lg font-semibold text-clinical-800">
+            Estudios — Últimos 7 días
+          </h2>
+          <EstudiosSparkline data={metrics.tendenciaEstudios} />
+        </section>
+      )}
 
       {/* Ultimos estudios recientes */}
       <section className="card-clinical">
@@ -162,6 +186,76 @@ const ADMIN_LINKS = [
   { to: '/dashboard/citas',      label: 'Citas',       icon: '📅' },
   { to: '/dashboard/facturacion', label: 'Facturacion', icon: '🧾' },
 ];
+
+/* -- Sparkline SVG inline — estudios por día -- */
+function EstudiosSparkline({ data }) {
+  const W = 560;
+  const H = 72;
+  const PAD = { top: 8, bottom: 28, left: 8, right: 8 };
+  const n = data.length;
+  const maxVal = Math.max(...data.map(d => d.count), 1);
+  const barW = Math.floor((W - PAD.left - PAD.right) / n) - 4;
+  const chartH = H - PAD.top - PAD.bottom;
+
+  const fmtDay = (iso) => {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('es', { weekday: 'short', day: 'numeric' });
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full max-w-2xl"
+        aria-label="Estudios por día — últimos 7 días"
+      >
+        {data.map((d, i) => {
+          const barH = maxVal > 0 ? Math.max(3, (d.count / maxVal) * chartH) : 3;
+          const x = PAD.left + i * ((W - PAD.left - PAD.right) / n) + 2;
+          const y = PAD.top + (chartH - barH);
+          const isToday = i === n - 1;
+
+          return (
+            <g key={d.fecha}>
+              {/* Barra */}
+              <rect
+                x={x}
+                y={y}
+                width={barW}
+                height={barH}
+                rx={3}
+                fill={isToday ? '#7a22ff' : '#7a22ff66'}
+              />
+              {/* Valor */}
+              {d.count > 0 && (
+                <text
+                  x={x + barW / 2}
+                  y={y - 3}
+                  textAnchor="middle"
+                  fontSize="9"
+                  fill={isToday ? '#7a22ff' : '#94a3b8'}
+                  fontWeight={isToday ? '700' : '400'}
+                >
+                  {d.count}
+                </text>
+              )}
+              {/* Label día */}
+              <text
+                x={x + barW / 2}
+                y={H - 6}
+                textAnchor="middle"
+                fontSize="8"
+                fill="#64748b"
+              >
+                {fmtDay(d.fecha)}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
 
 /* -- KPI Card con icono -- */
 function KpiCard({ label, value, delta, accent, icon }) {
