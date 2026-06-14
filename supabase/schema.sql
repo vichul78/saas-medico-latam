@@ -558,6 +558,6 @@ CREATE POLICY audit_logs_insert ON audit_logs
   FOR INSERT
   WITH CHECK (
     clinica_id = clinica_actual()
-    AND rol_actual() IN ('admin_clinica', 'medico', 'tecnico')
+    AND rol_actual() IN ('admin_clinica', 'medico')
   );
 
