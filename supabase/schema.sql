@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   rol         user_role NOT NULL DEFAULT 'paciente',
   nombre      TEXT NOT NULL,
   apellido    TEXT NOT NULL,
-  email       TEXT NOT NULL,
+  email       TEXT NOT NULL UNIQUE,
   telefono    TEXT,
   avatar_url  TEXT,
   activo      BOOLEAN NOT NULL DEFAULT TRUE,

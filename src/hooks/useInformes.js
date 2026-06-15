@@ -70,12 +70,47 @@ export function useInformes({ search = '', estado = '', pageSize = 25 } = {}) {
         query = query.eq('estado', estado);
       }
 
-      // Busqueda por nombre/apellido del paciente (via estudios.pacientes)
+      // Busqueda por nombre/apellido del paciente (via estudios → pacientes)
+      // NOTA: PostgREST no soporta .or() sobre joins anidados.
+      // Solución: buscar primero paciente_ids → luego estudio_ids → filtrar informes.
       if (search.trim()) {
         const term = `%${search.trim()}%`;
-        query = query.or(
-          `estudios.pacientes.nombre.ilike.${term},estudios.pacientes.apellido.ilike.${term}`,
-        );
+
+        const { data: pacientesMatch } = await supabase
+          .from('pacientes')
+          .select('id')
+          .eq('clinica_id', clinicaId)
+          .or(`nombre.ilike.${term},apellido.ilike.${term}`);
+
+        const pacienteIds = (pacientesMatch ?? []).map(p => p.id);
+
+        if (pacienteIds.length === 0) {
+          if (!abortRef.current) {
+            setInformes([]);
+            setTotalCount(0);
+            setLoading(false);
+          }
+          return;
+        }
+
+        const { data: estudiosMatch } = await supabase
+          .from('estudios')
+          .select('id')
+          .eq('clinica_id', clinicaId)
+          .in('paciente_id', pacienteIds);
+
+        const estudioIds = (estudiosMatch ?? []).map(e => e.id);
+
+        if (estudioIds.length === 0) {
+          if (!abortRef.current) {
+            setInformes([]);
+            setTotalCount(0);
+            setLoading(false);
+          }
+          return;
+        }
+
+        query = query.in('estudio_id', estudioIds);
       }
 
       const { data, error: sbError, count } = await query;

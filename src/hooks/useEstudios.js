@@ -79,11 +79,27 @@ export function useEstudios({ search = '', estado = '', pageSize = 25, enabled =
       }
 
       // Busqueda por nombre/apellido del paciente
+      // NOTA: PostgREST no soporta .or() sobre columnas de tablas relacionadas (joins).
+      // Solución: buscar primero los IDs de pacientes que coinciden, luego filtrar estudios.
       if (search.trim()) {
         const term = `%${search.trim()}%`;
-        query = query.or(
-          `pacientes.nombre.ilike.${term},pacientes.apellido.ilike.${term}`,
-        );
+        const { data: pacientesMatch } = await supabase
+          .from('pacientes')
+          .select('id')
+          .eq('clinica_id', clinicaId)
+          .or(`nombre.ilike.${term},apellido.ilike.${term}`);
+
+        const ids = (pacientesMatch ?? []).map(p => p.id);
+        if (ids.length === 0) {
+          // Ningun paciente coincide — retornar vacio inmediatamente
+          if (!abortRef.current) {
+            setEstudios([]);
+            setTotalCount(0);
+            setLoading(false);
+          }
+          return;
+        }
+        query = query.in('paciente_id', ids);
       }
 
       const { data, error: sbError, count } = await query;
