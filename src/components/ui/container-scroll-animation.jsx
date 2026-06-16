@@ -40,7 +40,7 @@ export const Card = ({ rotate, scale, children }) => (
       rotateX: rotate, scale,
       boxShadow: "0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
     }}
-    className="max-w-5xl -mt-12 mx-auto h-[30rem] md:h-[40rem] w-full border-4 border-[#7A22FF]/50 p-2 md:p-6 bg-[#0a0a0a] rounded-[30px] shadow-2xl"
+    className="max-w-5xl -mt-12 mx-auto h-[30rem] md:h-[40rem] w-full border border-gray-200 p-2 md:p-4 bg-white rounded-[30px] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.15)]"
   >
     <div className="h-full w-full overflow-hidden rounded-2xl bg-zinc-900 md:rounded-2xl md:p-4">
       {children}

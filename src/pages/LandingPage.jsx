@@ -452,20 +452,20 @@ function BrowserMockup() {
     <div className="w-full max-w-6xl">
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_32px_80px_-16px_rgba(0,0,0,0.08)] backdrop-blur-xl">
         <div className="flex h-10 items-center gap-2.5 border-b border-slate-200 bg-slate-100 px-4">
-          <div className="h-3 w-3 rounded-full bg-[#5ed29c]/60" />
-          <div className="h-3 w-3 rounded-full bg-[#3ab87a]/50" />
-          <div className="h-3 w-3 rounded-full bg-[#5ed29c]/30" />
+          <div className="h-3 w-3 rounded-full bg-[#3b82f6]/60" />
+          <div className="h-3 w-3 rounded-full bg-[#2563eb]/50" />
+          <div className="h-3 w-3 rounded-full bg-[#3b82f6]/30" />
           <div className="mx-auto flex h-6 w-64 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3">
-            <div className="h-2 w-2 rounded-full bg-[#5ed29c]/50" />
+            <div className="h-2 w-2 rounded-full bg-[#3b82f6]/50" />
             <span className="font-mono text-[11px] text-slate-400">app.medicolatam.com/visor</span>
           </div>
         </div>
         <div className="relative flex h-[400px] overflow-hidden sm:h-[480px]">
           <div className="hidden w-36 shrink-0 border-r border-slate-200 bg-black/50 p-3 sm:block">
-            <p className="mb-2 text-[9px] font-bold uppercase tracking-widest text-[#5ed29c]">Series</p>
+            <p className="mb-2 text-[9px] font-bold uppercase tracking-widest text-[#3b82f6]">Series</p>
             {['TC Tórax Axial', 'TC Tórax Coronal', 'Rx PA'].map((s, i) => (
               <div key={s} className={`mb-1.5 rounded-lg p-2 text-[10px] text-slate-500 ${
-                i === 0 ? 'border border-[#5ed29c]/30 bg-[#5ed29c]/8 text-slate-700' : ''}`}>
+                i === 0 ? 'border border-[#3b82f6]/30 bg-[#3b82f6]/8 text-slate-700' : ''}`}>
                 <div className="mb-1 h-12 w-full rounded bg-black/70" />
                 <p className="truncate">{s}</p>
               </div>
@@ -479,8 +479,8 @@ function BrowserMockup() {
               <ellipse cx="198" cy="195" rx="62" ry="85" fill="#080808" />
               <ellipse cx="316" cy="195" rx="65" ry="85" fill="#080808" />
               <ellipse cx="256" cy="210" rx="40" ry="48" fill="#222" />
-              <line x1="256" y1="110" x2="256" y2="290" stroke="rgba(94,210,156,0.25)" strokeWidth="1" strokeDasharray="4 4" />
-              <line x1="160" y1="200" x2="352" y2="200" stroke="rgba(94,210,156,0.25)" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="256" y1="110" x2="256" y2="290" stroke="rgba(59,130,246,0.25)" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="160" y1="200" x2="352" y2="200" stroke="rgba(59,130,246,0.25)" strokeWidth="1" strokeDasharray="4 4" />
             </svg>
             <div className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] text-slate-400">
               <p>PACIENTE: Demo · García</p><p>CT · Axial</p>
@@ -491,18 +491,18 @@ function BrowserMockup() {
           </div>
           <div className="hidden w-52 shrink-0 border-l border-slate-200 bg-[#050010]/80 sm:flex sm:flex-col">
             <div className="flex items-center gap-2 px-3 py-2.5" style={{ background: 'linear-gradient(to right, #070b0a, #0d2b1e)' }}>
-              <div className="h-6 w-6 rounded-full bg-[#5ed29c]/20" />
+              <div className="h-6 w-6 rounded-full bg-[#3b82f6]/20" />
               <p className="text-[11px] font-semibold text-white">Iris · IA</p>
-              <div className="ml-auto h-2 w-2 animate-pulse rounded-full bg-[#5ed29c]" />
+              <div className="ml-auto h-2 w-2 animate-pulse rounded-full bg-[#3b82f6]" />
             </div>
             <div className="flex-1 space-y-2 p-3">
               <div className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] text-slate-500">Analizando TC de tórax…</div>
-              <div className="ml-2 rounded-lg border border-[#5ed29c]/20 bg-[#5ed29c]/5 px-2.5 py-1.5 text-[10px] text-slate-500">Parénquima sin consolidaciones. CTR normal.</div>
+              <div className="ml-2 rounded-lg border border-[#3b82f6]/20 bg-[#3b82f6]/5 px-2.5 py-1.5 text-[10px] text-slate-500">Parénquima sin consolidaciones. CTR normal.</div>
             </div>
           </div>
         </div>
       </div>
-      <div aria-hidden className="pointer-events-none mx-auto mt-0 h-14 w-2/3 -translate-y-4 rounded-full bg-[#5ed29c]/10 blur-2xl" />
+      <div aria-hidden className="pointer-events-none mx-auto mt-0 h-14 w-2/3 -translate-y-4 rounded-full bg-[#3b82f6]/10 blur-2xl" />
     </div>
   );
 }
@@ -518,12 +518,12 @@ function ProductTabs() {
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-slate-50" />
       <div className="relative z-10 mx-auto max-w-6xl">
         <div className="mb-14 text-center">
-          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#5ed29c]/30 bg-[#5ed29c]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: '#3ab87a' }}>
+          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#3b82f6]/30 bg-[#3b82f6]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: '#2563eb' }}>
             <Sparkles className="h-3 w-3" /> Plataforma modular
           </p>
           <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
             Todo lo que tu clínica{' '}
-            <span className="bg-gradient-to-r from-[#5ed29c] to-[#3ab87a] bg-clip-text text-transparent">necesita</span>
+            <span className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] bg-clip-text text-transparent">necesita</span>
           </h2>
         </div>
         <div className="mb-12 flex flex-wrap justify-center gap-2">
@@ -531,10 +531,10 @@ function ProductTabs() {
             <button key={t.id} type="button" onClick={() => setActive(t.id)}
               className={`flex items-center gap-2 rounded-xl border px-6 py-3 text-sm font-semibold transition ${
                 active === t.id
-                  ? 'border-[#5ed29c]/50 bg-[#5ed29c]/15 text-slate-900 shadow-[0_0_24px_-6px_rgba(94,210,156,0.4)]'
-                  : 'border-slate-200 bg-white text-slate-500 hover:border-[#5ed29c]/30 hover:text-slate-700'
+                  ? 'border-[#3b82f6]/50 bg-[#3b82f6]/15 text-slate-900 shadow-[0_0_24px_-6px_rgba(59,130,246,0.4)]'
+                  : 'border-slate-200 bg-white text-slate-500 hover:border-[#3b82f6]/30 hover:text-slate-700'
               }`}>
-              <span className={active === t.id ? 'text-[#3ab87a]' : ''}>{t.icon}</span>{t.label}
+              <span className={active === t.id ? 'text-[#2563eb]' : ''}>{t.icon}</span>{t.label}
             </button>
           ))}
         </div>
@@ -545,7 +545,7 @@ function ProductTabs() {
             <ul className="space-y-3">
               {tab.points.map(pt => (
                 <li key={pt} className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#5ed29c' }} />
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#3b82f6' }} />
                   <span className="text-sm text-slate-600">{pt}</span>
                 </li>
               ))}
@@ -553,7 +553,7 @@ function ProductTabs() {
             <div className="mt-10">
               <Link to="/login"
                 className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold uppercase transition hover:brightness-110"
-                style={{ background: '#5ed29c', color: '#070b0a', fontFamily: "'Inter', sans-serif" }}>
+                style={{ background: '#3b82f6', color: '#ffffff', fontFamily: "'Inter', sans-serif" }}>
                 Comenzar ahora <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -571,9 +571,9 @@ function TabVisual({ tabId }) {
   if (tabId === 'pacs') return (
     <div className="space-y-3">
       <div className="mb-3 flex items-center gap-2">
-        <Monitor className="h-5 w-5" style={{ color: '#5ed29c' }} />
+        <Monitor className="h-5 w-5" style={{ color: '#3b82f6' }} />
         <span className="text-sm font-semibold text-slate-900">Visor DICOM</span>
-        <span className="ml-auto rounded-full border border-[#5ed29c]/30 bg-[#5ed29c]/10 px-2 py-0.5 text-[10px] font-bold" style={{ color: '#3ab87a' }}>CT</span>
+        <span className="ml-auto rounded-full border border-[#3b82f6]/30 bg-[#3b82f6]/10 px-2 py-0.5 text-[10px] font-bold" style={{ color: '#2563eb' }}>CT</span>
       </div>
       <div className="flex h-48 items-center justify-center overflow-hidden rounded-xl bg-black">
         <svg viewBox="0 0 256 180" className="w-full max-h-full opacity-60" aria-hidden>
@@ -607,7 +607,7 @@ function TabVisual({ tabId }) {
             <p className="text-sm font-bold text-slate-900">{r.val}</p>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full" style={{ width: `${r.pct}%`, background: '#5ed29c' }} />
+            <div className="h-full rounded-full" style={{ width: `${r.pct}%`, background: '#3b82f6' }} />
           </div>
         </div>
       ))}
@@ -618,8 +618,8 @@ function TabVisual({ tabId }) {
       <div className="mb-3 flex items-center gap-2">
         <Brain className="h-5 w-5 text-slate-500" />
         <span className="text-sm font-semibold text-slate-900">Copiloto Iris</span>
-        <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-[#5ed29c]/30 bg-[#5ed29c]/10 px-2 py-0.5 text-[10px] font-semibold" style={{ color: '#3ab87a' }}>
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#5ed29c]" /> Online
+        <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-[#3b82f6]/30 bg-[#3b82f6]/10 px-2 py-0.5 text-[10px] font-semibold" style={{ color: '#2563eb' }}>
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3b82f6]" /> Online
         </span>
       </div>
       {[
@@ -632,7 +632,7 @@ function TabVisual({ tabId }) {
         <div key={i} className={`rounded-xl px-3 py-2 text-[11px] leading-relaxed ${
           m.who === 'iris'
             ? 'bg-slate-100 text-slate-500'
-            : 'ml-5 border border-[#5ed29c]/20 bg-[#5ed29c]/5 text-slate-700'
+            : 'ml-5 border border-[#3b82f6]/20 bg-[#3b82f6]/5 text-slate-700'
         }`}>{m.text}</div>
       ))}
     </div>
@@ -650,15 +650,15 @@ function TeleradiologySection() {
   ];
   return (
     <section className="relative overflow-hidden py-28 px-4 sm:px-8">
-      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#5ed29c] opacity-[0.03] blur-[180px]" />
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3b82f6] opacity-[0.03] blur-[180px]" />
       <div className="relative z-10 mx-auto max-w-6xl">
         <div className="mb-16 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#5ed29c]/30 bg-[#5ed29c]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: '#3ab87a' }}>
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#3b82f6]/30 bg-[#3b82f6]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: '#2563eb' }}>
             🌐 Red Nacional de Diagnóstico
           </div>
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-5xl">
             Teleradiología:{' '}
-            <span className="bg-gradient-to-r from-[#5ed29c] to-[#3ab87a] bg-clip-text text-transparent">diagnóstico remoto</span>
+            <span className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] bg-clip-text text-transparent">diagnóstico remoto</span>
           </h2>
           <p className="mx-auto max-w-2xl text-base leading-relaxed text-slate-500">
             Conecta tu clínica con radiólogos certificados en todo LatAm. Estudios leídos en menos de 2 horas con firma digital y trazabilidad completa.
@@ -666,8 +666,8 @@ function TeleradiologySection() {
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {steps.map(s => (
-            <div key={s.step} className="group relative rounded-2xl border border-slate-200 bg-white p-7 transition hover:border-[#5ed29c]/30 hover:shadow-[0_0_40px_-8px_rgba(94,210,156,0.2)]">
-              <div className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#5ed29c]/15 text-xs font-bold" style={{ color: '#3ab87a' }}>
+            <div key={s.step} className="group relative rounded-2xl border border-slate-200 bg-white p-7 transition hover:border-[#3b82f6]/30 hover:shadow-[0_0_40px_-8px_rgba(59,130,246,0.2)]">
+              <div className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#3b82f6]/15 text-xs font-bold" style={{ color: '#2563eb' }}>
                 {s.step}
               </div>
               <div className="mb-3 text-3xl">{s.icon}</div>
@@ -678,8 +678,8 @@ function TeleradiologySection() {
         </div>
         <div className="mt-12 text-center">
           <Link to="/soluciones/teleradiologia"
-            className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition hover:bg-[#5ed29c]/10"
-            style={{ borderColor: 'rgba(94,210,156,0.4)', color: '#3ab87a' }}>
+            className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition hover:bg-[#3b82f6]/10"
+            style={{ borderColor: 'rgba(59,130,246,0.4)', color: '#2563eb' }}>
             Conocer la Red de Teleradiología <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -699,14 +699,14 @@ function FeaturesSection() {
         <div className="mb-14 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             Diseñado para{' '}
-            <span className="bg-gradient-to-r from-[#5ed29c] to-[#3ab87a] bg-clip-text text-transparent">la práctica clínica real</span>
+            <span className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] bg-clip-text text-transparent">la práctica clínica real</span>
           </h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(f => (
-            <div key={f.title} className="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-[#5ed29c]/30 hover:shadow-[0_0_36px_-8px_rgba(94,210,156,0.2)]">
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 ring-1 ring-[#5ed29c]/20 transition group-hover:scale-110 group-hover:ring-[#5ed29c]/50"
-                   style={{ color: '#3ab87a' }}>
+            <div key={f.title} className="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-[#3b82f6]/30 hover:shadow-[0_0_36px_-8px_rgba(59,130,246,0.2)]">
+              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 ring-1 ring-[#3b82f6]/20 transition group-hover:scale-110 group-hover:ring-[#3b82f6]/50"
+                   style={{ color: '#2563eb' }}>
                 {f.icon}
               </div>
               <h3 className="mb-2 text-base font-semibold text-slate-900">{f.title}</h3>
@@ -729,7 +729,7 @@ function StatsSection() {
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200 md:grid-cols-4">
           {STATS.map((s, i) => (
             <div key={s.label} className={`flex flex-col items-center justify-center bg-white py-10 ${i < STATS.length - 1 ? 'border-r border-slate-200' : ''}`}>
-              <span className="mb-1 bg-gradient-to-r from-[#5ed29c] to-[#3ab87a] bg-clip-text text-4xl font-bold text-transparent tracking-tight">{s.value}</span>
+              <span className="mb-1 bg-gradient-to-r from-[#3b82f6] to-[#2563eb] bg-clip-text text-4xl font-bold text-transparent tracking-tight">{s.value}</span>
               <span className="text-xs font-medium text-slate-400">{s.label}</span>
             </div>
           ))}
@@ -745,29 +745,25 @@ function StatsSection() {
 function CTASection() {
   return (
     <section
-      className="relative overflow-hidden py-28 px-4 sm:px-8"
-      style={{ background: '#070b0a' }}
+      className="relative overflow-hidden py-28 px-4 sm:px-8 bg-[#f5f5f7]"
     >
-      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[180px]"
-           style={{ background: 'rgba(94,210,156,0.06)' }} />
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[160px]"
+           style={{ background: 'rgba(59,130,246,0.12)' }} />
       <div className="relative z-10 mx-auto max-w-4xl text-center">
-        {[25, 75].map(pct => (
-          <div key={pct} aria-hidden className="pointer-events-none absolute inset-y-0 hidden w-px lg:block" style={{ left: `${pct}%`, background: 'rgba(255,255,255,0.06)' }} />
-        ))}
         <h2
-          className="mb-6 font-extrabold uppercase leading-none tracking-tight text-white"
-          style={{ fontFamily: "'Inter', sans-serif", fontSize: 'clamp(32px, 5vw, 60px)' }}
+          className="mb-6 font-semibold leading-[1.05] tracking-tight text-gray-950"
+          style={{ fontFamily: "'Inter', sans-serif", fontSize: 'clamp(34px, 5vw, 64px)' }}
         >
-          TU CLÍNICA, LISTA<br />
-          DESDE HOY<span style={{ color: '#5ed29c' }}>.</span>
+          Tu clínica, lista<br />
+          desde hoy<span style={{ color: '#3b82f6' }}>.</span>
         </h2>
-        <p className="mx-auto mb-10 max-w-xl text-base leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
+        <p className="mx-auto mb-10 max-w-xl text-lg leading-relaxed text-gray-500">
           Sin papeles, sin demoras. Únete a las clínicas de LatAm que ya digitalizaron su operación completa.
         </p>
         <Link
           to="/login"
           className="inline-flex items-center gap-2.5 rounded-full px-10 py-4 text-base font-bold uppercase transition hover:brightness-110 hover:scale-[1.03]"
-          style={{ background: '#5ed29c', color: '#070b0a', fontFamily: "'Inter', sans-serif" }}
+          style={{ background: '#3b82f6', color: '#ffffff', fontFamily: "'Inter', sans-serif" }}
         >
           Comenzar <ArrowRight className="h-5 w-5" />
         </Link>
@@ -782,7 +778,7 @@ function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
         <p className="text-sm text-slate-400">© {new Date().getFullYear()} MediCo LatAm · Plataforma clínica regional</p>
         <div className="flex items-center gap-3 text-slate-400">
-          <BarChart3 className="h-4 w-4" style={{ color: 'rgba(94,210,156,0.4)' }} />
+          <BarChart3 className="h-4 w-4" style={{ color: 'rgba(59,130,246,0.4)' }} />
           <span className="text-sm">Enterprise Edition · v3.0</span>
         </div>
       </div>
@@ -802,9 +798,9 @@ export default function LandingPage() {
       <div className="flex flex-col overflow-hidden bg-white">
         <ContainerScroll
           titleComponent={
-            <h2 className="text-4xl font-semibold text-slate-900">
+            <h2 className="text-4xl font-semibold tracking-tight text-gray-950">
               Potencia tu clínica con <br />
-              <span className="mt-1 block text-4xl font-bold leading-none md:text-[6rem]" style={{ color: '#5ed29c' }}>
+              <span className="mt-1 block text-5xl font-semibold leading-none tracking-tight text-blue-600 md:text-[5rem]">
                 Gestión Inteligente
               </span>
             </h2>
