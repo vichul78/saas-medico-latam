@@ -48,6 +48,7 @@ export function useEnvioWhatsapp() {
           estado,
           clinica_id,
           estudios (
+            id,
             tipo,
             fecha,
             paciente_id,
@@ -105,6 +106,8 @@ export function useEnvioWhatsapp() {
       const pacienteNombre = `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim();
 
       // 4. Invoke Edge Function (server-side Twilio call — seguro)
+      const estudioId = informe.estudios?.id || null;
+
       const { data: response, error: fnError } = await supabase.functions.invoke(
         'send-whatsapp',
         {
@@ -113,6 +116,7 @@ export function useEnvioWhatsapp() {
             patient_phone:  telefonoNormalizado,
             patient_name:   pacienteNombre,
             report_summary: resumenTexto,
+            estudio_id:     estudioId,
           },
         },
       );

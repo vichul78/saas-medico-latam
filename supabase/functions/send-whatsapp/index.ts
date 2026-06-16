@@ -47,7 +47,7 @@ serve(async (req: Request) => {
     }
 
     // Parse body
-    const { informe_id, patient_phone, patient_name, report_summary } =
+    const { informe_id, patient_phone, patient_name, report_summary, estudio_id } =
       await req.json();
 
     if (!informe_id || !patient_phone || !patient_name) {
@@ -113,6 +113,7 @@ serve(async (req: Request) => {
       .insert({
         clinica_id: usuario.clinica_id,
         informe_id: informe_id,
+        estudio_id: estudio_id || null,
         token: token,
         expires_at: expiresAt,
         created_by: user.id,

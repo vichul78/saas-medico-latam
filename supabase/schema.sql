@@ -374,15 +374,16 @@ CREATE TRIGGER on_auth_user_created_usuario
 -- 7.5. SHARE_TOKENS (compartir informes via WhatsApp / link temporal)
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS share_tokens (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  clinica_id  UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
-  informe_id  UUID NOT NULL REFERENCES informes(id) ON DELETE CASCADE,
-  token       TEXT UNIQUE NOT NULL,
-  expires_at  TIMESTAMPTZ NOT NULL,
-  created_by  UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-  accessed_at TIMESTAMPTZ,
-  metadata    JSONB DEFAULT '{}',
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clinica_id       UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
+  informe_id       UUID NOT NULL REFERENCES informes(id) ON DELETE CASCADE,
+  estudio_id       UUID REFERENCES estudios(id) ON DELETE SET NULL,  -- enlace directo al estudio DICOM
+  token            TEXT UNIQUE NOT NULL,
+  expires_at       TIMESTAMPTZ NOT NULL,
+  created_by       UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  accessed_at      TIMESTAMPTZ,
+  metadata         JSONB DEFAULT '{}',
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_share_tokens_token ON share_tokens(token);
@@ -404,16 +405,21 @@ CREATE POLICY share_tokens_staff ON share_tokens
 -- ── Funcion publica para consultar un informe compartido via token ──────────
 CREATE OR REPLACE FUNCTION get_shared_informe(p_token TEXT)
 RETURNS TABLE (
-  informe_texto     TEXT,
-  informe_estado    informe_estado,
-  estudio_tipo      TEXT,
-  estudio_fecha     DATE,
-  paciente_nombre   TEXT,
-  paciente_apellido TEXT,
-  clinica_nombre    TEXT,
-  expires_at        TIMESTAMPTZ
+  informe_texto        TEXT,
+  informe_estado       informe_estado,
+  estudio_tipo         TEXT,
+  estudio_fecha        DATE,
+  estudio_id           UUID,
+  archivo_dicom_url    TEXT,
+  paciente_nombre      TEXT,
+  paciente_apellido    TEXT,
+  paciente_fecha_nac   DATE,
+  clinica_nombre       TEXT,
+  clinica_logo_url     TEXT,
+  medico_nombre        TEXT,
+  expires_at           TIMESTAMPTZ
 )
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $
 DECLARE
   v_share share_tokens%ROWTYPE;
 BEGIN
@@ -431,21 +437,27 @@ BEGIN
 
   RETURN QUERY
   SELECT
-    i.texto          AS informe_texto,
-    i.estado         AS informe_estado,
-    e.tipo           AS estudio_tipo,
-    e.fecha          AS estudio_fecha,
-    p.nombre         AS paciente_nombre,
-    p.apellido       AS paciente_apellido,
-    c.nombre         AS clinica_nombre,
-    v_share.expires_at AS expires_at
+    i.texto                AS informe_texto,
+    i.estado               AS informe_estado,
+    e.tipo                 AS estudio_tipo,
+    e.fecha                AS estudio_fecha,
+    e.id                   AS estudio_id,
+    e.archivo_dicom_url    AS archivo_dicom_url,
+    p.nombre               AS paciente_nombre,
+    p.apellido             AS paciente_apellido,
+    p.fecha_nacimiento     AS paciente_fecha_nac,
+    c.nombre               AS clinica_nombre,
+    c.logo_url             AS clinica_logo_url,
+    COALESCE(u.nombre || ' ' || u.apellido, 'Dr./Dra.')  AS medico_nombre,
+    v_share.expires_at     AS expires_at
   FROM informes i
-  JOIN estudios e ON e.id = i.estudio_id
+  JOIN estudios e  ON e.id = i.estudio_id
   JOIN pacientes p ON p.id = e.paciente_id
-  JOIN clinicas c ON c.id = i.clinica_id
+  JOIN clinicas c  ON c.id = i.clinica_id
+  LEFT JOIN usuarios u ON u.id = i.medico_id
   WHERE i.id = v_share.informe_id;
 END;
-$$;
+$;
 
 -- ─────────────────────────────────────────────
 -- 10. SEED MÍNIMO (desarrollo)
