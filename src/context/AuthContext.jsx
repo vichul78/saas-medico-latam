@@ -86,8 +86,17 @@ export function AuthProvider({ children }) {
   }, [loadProfile]);
 
   // ── Suscripción reactiva a cambios de auth ─────────────────────────────
+  //
+  // IMPORTANTE: el callback de onAuthStateChange de supabase-js corre DENTRO de
+  // un lock interno de la librería de auth (navigator.locks). Si dentro del
+  // callback se hace `await` de OTRA llamada a Supabase (p.ej. getProfile, que
+  // toca el cliente y por ende el mismo lock), se produce un DEADLOCK: la
+  // promesa nunca resuelve y la UI se cuelga en "Verificando sesión…" sin error.
+  //
+  // Solución oficial: NO usar async/await directamente en el callback. Diferir
+  // cualquier trabajo asíncrono fuera del lock con un setTimeout(…, 0).
   useEffect(() => {
-    const unsubscribe = onAuthChange(async (event, s) => {
+    const unsubscribe = onAuthChange((event, s) => {
       setSession(s);
 
       const uid = s?.user?.id ?? null;
@@ -95,16 +104,22 @@ export function AuthProvider({ children }) {
       if (event === 'SIGNED_OUT' || !uid) {
         setProfile(null);
         loadedForRef.current = null;
-      } else if (
+        setLoading(false);
+        return;
+      }
+
+      if (
         (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') &&
         loadedForRef.current !== uid
       ) {
-        // Solo recargamos si el perfil aún no corresponde a este usuario.
-        await loadProfile(uid);
+        // Diferido fuera del lock de auth para evitar el deadlock.
+        setTimeout(() => {
+          loadProfile(uid).finally(() => setLoading(false));
+        }, 0);
+      } else {
+        // Evento sin necesidad de recargar perfil (p.ej. TOKEN_REFRESHED).
+        setLoading(false);
       }
-
-      // El spinner inicial nunca debe quedar colgado por un evento de auth.
-      setLoading(false);
     });
 
     return unsubscribe;
