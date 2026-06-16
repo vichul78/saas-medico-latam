@@ -2,24 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { signUp } from '@/lib/supabaseClient.js';
 import { useAuth } from '@/hooks/useAuth.js';
-import Logo from '@/components/brand/Logo.jsx';
 
 /*
-  ┌──────────────────────────────────────────────────────────────┐
-  │  REGISTER — Alta de cuenta, modo oscuro clínico              │
-  │  Reglas visuales (espejo de Login):                          │
-  │    • Fondo: deep-space clínico (clinical-900)               │
-  │    • Acentos: Púrpura Eléctrico (#7A22FF) y Violeta          │
-  │    • Logo prominente arriba · CERO tonos verdes              │
-  │  Flujo:                                                      │
-  │    1. signUp() crea el usuario en Supabase Auth.            │
-  │    2. El trigger handle_new_usuario crea la fila en          │
-  │       `usuarios` (rol + clinica_id) leyendo la metadata.    │
-  │    3a. Si la confirmación de email está DESACTIVADA →       │
-  │        Supabase devuelve session → AuthContext redirige.    │
-  │    3b. Si está ACTIVADA → no hay session → mostramos aviso  │
-  │        "revisa tu correo".                                   │
-  └──────────────────────────────────────────────────────────────┘
+  REGISTER — Apple-style, fondo blanco/gris, acento azul único (#3b82f6).
+  Sin negro, morado, violeta ni verde.
+  Espejo de Login.jsx.
 */
 
 const ROLE_HOME = {
@@ -30,28 +17,26 @@ const ROLE_HOME = {
 
 const ROLE_OPTIONS = [
   { value: 'paciente',      label: 'Paciente' },
-  { value: 'medico',        label: 'Medico / Profesional' },
-  { value: 'admin_clinica', label: 'Admin Clinica' },
+  { value: 'medico',        label: 'Médico / Profesional' },
+  { value: 'admin_clinica', label: 'Admin Clínica' },
 ];
 
 export default function Register() {
   const { isAuthenticated, role, loading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate  = useNavigate();
+  const location  = useLocation();
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName,  setLastName]  = useState('');
-  const [email,     setEmail]     = useState('');
-  const [password,  setPassword]  = useState('');
-  const [showPwd,   setShowPwd]   = useState(false);
-  const [roleSel,   setRoleSel]   = useState('');
-  const [clinicaSlug, setClinicaSlug] = useState('');
+  const [firstName,    setFirstName]    = useState('');
+  const [lastName,     setLastName]     = useState('');
+  const [email,        setEmail]        = useState('');
+  const [password,     setPassword]     = useState('');
+  const [showPwd,      setShowPwd]      = useState(false);
+  const [roleSel,      setRoleSel]      = useState('');
+  const [clinicaSlug,  setClinicaSlug]  = useState('');
+  const [error,        setError]        = useState('');
+  const [submitting,   setSubmitting]   = useState(false);
+  const [confirmSent,  setConfirmSent]  = useState(false);
 
-  const [error,      setError]      = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [confirmSent, setConfirmSent] = useState(false);
-
-  // Si ya hay sesión activa, redirige al dashboard del rol.
   useEffect(() => {
     if (!loading && isAuthenticated && role) {
       const from = location.state?.from?.pathname ?? ROLE_HOME[role] ?? '/';
@@ -84,85 +69,70 @@ export default function Register() {
     });
 
     if (signErr) {
-      // Híbrido: error original EN a consola; mensaje ES clínico a la UI.
-      // eslint-disable-next-line no-console
-      console.error(
-        '[Register] signUp — Supabase error (original EN):',
-        { code: signErr.code, message: signErr.message, status: signErr.status },
-      );
+      console.error('[Register] signUp error:', signErr);
       setError(friendlyError(signErr.message));
       setSubmitting(false);
       return;
     }
 
-    // Sin sesión → Supabase requiere confirmación por email.
     if (!data?.session) {
       setConfirmSent(true);
       setSubmitting(false);
       return;
     }
-
-    // Con sesión → onAuthChange en AuthContext disparará la redirección
-    // a través del useEffect de arriba. Dejamos el spinner activo.
+    // Con sesión → AuthContext redirige vía useEffect.
   }
 
   if (loading) return <FullScreenSpinner />;
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-clinical-900 px-4 py-12">
-
-      {/* ── Destellos de fondo decorativos ── */}
-      <Glow className="absolute -left-40 -top-40 h-[520px] w-[520px] bg-electric-500 opacity-[0.12]" />
-      <Glow className="absolute -bottom-32 -right-32 h-[400px] w-[400px] bg-violet-500 opacity-[0.10]" />
-      <Glow className="absolute left-1/2 top-1/3 h-[260px] w-[260px] -translate-x-1/2 bg-electric-700 opacity-[0.07]" />
-
-      <div className="relative z-10 w-full max-w-md">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#f5f5f7] px-4 py-12">
+      <div className="w-full max-w-md">
 
         {/* LOGO */}
-        <div className="mb-8 flex flex-col items-center gap-5">
-          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-electric-gradient p-3 shadow-[0_0_60px_-10px_rgba(122,34,255,0.55)]">
-            <Logo className="h-full w-full" />
+        <div className="mb-8 flex flex-col items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 shadow-lg">
+            <HeartIcon className="h-9 w-9 text-white" />
           </div>
           <div className="text-center">
-            <h1 className="font-display text-3xl font-bold tracking-tight text-white">
-              MediCo<span className="text-electric-400"> LatAm</span>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-950">
+              MediCo LatAm
             </h1>
-            <p className="mt-1.5 text-sm font-medium tracking-[0.15em] text-clinical-400 uppercase">
+            <p className="mt-1 text-sm text-gray-500">
               Crea tu cuenta clínica
             </p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.04] px-8 py-9 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.7)] backdrop-blur-sm">
+        {/* CARD */}
+        <div className="rounded-2xl border border-gray-200 bg-white px-8 py-9 shadow-sm">
 
           {confirmSent ? (
-            /* ── Estado: confirmación enviada ── */
+            /* ── Confirmación enviada ── */
             <div className="flex flex-col items-center gap-4 py-6 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-electric-500/40 bg-electric-500/10">
-                <MailIcon className="h-6 w-6 text-electric-400" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-blue-200 bg-blue-50">
+                <MailIcon className="h-6 w-6 text-blue-600" />
               </div>
-              <h2 className="font-display text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-gray-950">
                 Revisa tu correo
               </h2>
-              <p className="text-sm text-clinical-400">
+              <p className="text-sm text-gray-500">
                 Enviamos un enlace de confirmación a{' '}
-                <span className="font-semibold text-clinical-200">{email}</span>.
-                Confírmalo para activar tu cuenta e iniciar sesión.
+                <span className="font-semibold text-gray-800">{email}</span>.
+                Confírmalo para activar tu cuenta.
               </p>
               <Link
                 to="/login"
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-electric-gradient py-3 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(122,34,255,0.6)] transition hover:brightness-110"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 Ir a iniciar sesión
               </Link>
             </div>
           ) : (
             <>
-              <div className="mb-7">
-                <h2 className="font-display text-xl font-semibold text-white">
-                  Registro
-                </h2>
-                <p className="mt-1 text-sm text-clinical-400">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-950">Registro</h2>
+                <p className="mt-1 text-sm text-gray-500">
                   Completa tus datos para crear tu cuenta.
                 </p>
               </div>
@@ -207,7 +177,7 @@ export default function Register() {
 
                 {/* Password */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="password" className="text-sm font-medium text-clinical-300">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-700">
                     Contraseña
                   </label>
                   <div className="relative">
@@ -220,13 +190,13 @@ export default function Register() {
                       onChange={e => setPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="dark-input w-full pr-11"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 pr-11 text-sm text-gray-950 placeholder-gray-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                     <button
                       type="button"
                       aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       onClick={() => setShowPwd(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-clinical-500 transition hover:text-clinical-300"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
                     >
                       {showPwd ? <EyeOff /> : <EyeOn />}
                     </button>
@@ -235,23 +205,19 @@ export default function Register() {
 
                 {/* Rol */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="role" className="text-sm font-medium text-clinical-300">
+                  <label htmlFor="role" className="text-sm font-medium text-gray-700">
                     Tipo de cuenta
                   </label>
                   <select
                     id="role"
                     value={roleSel}
                     onChange={e => setRoleSel(e.target.value)}
-                    className="dark-input w-full appearance-auto"
                     required
+                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-950 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   >
-                    <option value="" disabled className="bg-[#0f0f18] text-clinical-500">
-                      Seleccionar tipo de cuenta
-                    </option>
+                    <option value="" disabled>Seleccionar tipo de cuenta</option>
                     {ROLE_OPTIONS.map(o => (
-                      <option key={o.value} value={o.value} className="bg-[#0f0f18] text-white">
-                        {o.label}
-                      </option>
+                      <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
                 </div>
@@ -266,16 +232,15 @@ export default function Register() {
                   value={clinicaSlug}
                   onChange={e => setClinicaSlug(e.target.value)}
                 />
-                <p className="-mt-2 text-[11px] leading-relaxed text-clinical-500">
-                  Identificador (slug) de tu clínica. Si lo dejas vacío, se te
-                  asignará la clínica por defecto.
+                <p className="-mt-2 text-[11px] leading-relaxed text-gray-400">
+                  Slug de tu clínica. Si lo dejas vacío se asignará la clínica por defecto.
                 </p>
 
                 {/* Error */}
                 {error && (
                   <div
                     role="alert"
-                    className="flex items-start gap-2.5 rounded-xl border border-status-danger/30 bg-status-danger/10 px-4 py-3 text-sm text-status-danger"
+                    className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
                   >
                     <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>{error}</span>
@@ -286,15 +251,15 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={submitting || !email || !password || !firstName || !lastName || !roleSel}
-                  className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-electric-gradient py-3 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(122,34,255,0.6)] transition hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-electric-400"
+                  className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 active:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   {submitting ? <Spinner /> : 'Crear cuenta'}
                 </button>
               </form>
 
-              {/* Pie del formulario */}
-              <div className="mt-7 flex items-center justify-between border-t border-white/[0.07] pt-6 text-xs text-clinical-500">
-                <Link to="/login" className="transition hover:text-electric-400">
+              {/* Pie */}
+              <div className="mt-7 flex items-center justify-between border-t border-gray-100 pt-6 text-xs text-gray-400">
+                <Link to="/login" className="transition hover:text-blue-600">
                   ¿Ya tienes cuenta? Inicia sesión
                 </Link>
                 <span className="flex items-center gap-1.5">
@@ -311,7 +276,7 @@ export default function Register() {
           {['HIPAA', 'LGPD', 'LFPDPPP'].map(b => (
             <span
               key={b}
-              className="rounded-full border border-violet-700/40 bg-violet-900/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-400"
+              className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-600"
             >
               {b}
             </span>
@@ -322,14 +287,12 @@ export default function Register() {
   );
 }
 
-// ─────────────────────────────────────────────
-// Sub-componentes internos
-// ─────────────────────────────────────────────
+// ─── Sub-componentes ───────────────────────────────────────────
 
 function Field({ id, label, type, autoComplete, placeholder, value, onChange, required, minLength }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-clinical-300">
+      <label htmlFor={id} className="text-sm font-medium text-gray-700">
         {label}
       </label>
       <input
@@ -341,22 +304,16 @@ function Field({ id, label, type, autoComplete, placeholder, value, onChange, re
         onChange={onChange}
         required={required}
         minLength={minLength}
-        className="dark-input w-full"
+        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-950 placeholder-gray-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       />
     </div>
   );
 }
 
-function Glow({ className }) {
-  return (
-    <div aria-hidden className={`pointer-events-none rounded-full blur-[120px] ${className}`} />
-  );
-}
-
 function FullScreenSpinner() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-clinical-900">
-      <Spinner className="h-8 w-8 text-electric-500" />
+    <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7]">
+      <Spinner className="h-8 w-8 text-blue-600" />
     </div>
   );
 }
@@ -366,6 +323,14 @@ function Spinner({ className = 'h-5 w-5 text-white' }) {
     <svg className={`animate-spin ${className}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}
+
+function HeartIcon({ className }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
     </svg>
   );
 }
@@ -413,7 +378,6 @@ function MailIcon({ className }) {
   );
 }
 
-// Traduce mensajes de Supabase Auth (signUp) a español clínico.
 function friendlyError(msg = '') {
   const m = msg.toLowerCase();
   if (m.includes('already registered') || m.includes('already been registered') || m.includes('user already'))
