@@ -1,60 +1,45 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 
 /**
- * SolucionView — Reusable enterprise product page for each specialty.
- *
- * Renders a full-screen, immersive one-pager with:
- *   - Hero section with specialty name + value proposition
- *   - Features grid (glassmorphism cards)
- *   - CTA to login
- *
- * Props:
- *   @param {string} specialty - Specialty name (e.g. "Cirugía")
- *   @param {string} subtitle - Value proposition subtitle
- *   @param {string} icon - Emoji or icon string
- *   @param {Array}  features - Array of { title, desc } objects
- *   @param {Array}  highlights - Array of string bullet points
+ * SolucionView — Página de especialidad, estilo Apple.
+ * Fondo: blanco/#f5f5f7 · Acento: azul #3b82f6 · Sin negro ni violeta.
  */
 export default function SolucionView({ specialty, subtitle, icon, features = [], highlights = [] }) {
   return (
-    <div className="w-full min-h-screen bg-black text-white">
-      {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden px-4 pt-20 pb-16 sm:px-8">
-        {/* Ambient glow */}
-        <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-[#7A22FF] opacity-[0.05] blur-[160px]" />
+    <div className="w-full min-h-screen bg-white text-gray-950" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden bg-[#f5f5f7] px-4 pt-20 pb-20 sm:px-8">
+        <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-blue-200/40 blur-[140px]" />
 
         <div className="relative z-10 mx-auto max-w-5xl text-center">
           {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#7A22FF]/40 bg-[#7A22FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#CFA8FF]">
-            <Sparkles className="h-3.5 w-3.5" />
-            Solución por especialidad
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+            ✦ Solución por especialidad
           </div>
 
-          {/* Icon + Title */}
-          <div className="mb-4 text-5xl">{icon}</div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          <div className="mb-5 text-6xl">{icon}</div>
+          <h1 className="mb-4 text-4xl font-semibold tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
             Módulo de{' '}
-            <span className="bg-gradient-to-r from-[#7A22FF] via-[#9450FF] to-[#CFA8FF] bg-clip-text text-transparent">
-              {specialty}
-            </span>
+            <span className="text-blue-600">{specialty}</span>
           </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-white/50">
+          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-gray-500">
             {subtitle}
           </p>
         </div>
       </section>
 
-      {/* ── Highlights (bullet points) ── */}
+      {/* ── Highlights ── */}
       {highlights.length > 0 && (
-        <section className="px-4 pb-16 sm:px-8">
+        <section className="px-4 py-16 sm:px-8">
           <div className="mx-auto max-w-3xl">
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 backdrop-blur-sm">
+            <div className="rounded-2xl border border-gray-200 bg-[#f5f5f7] p-8 shadow-sm">
               <ul className="grid gap-3 sm:grid-cols-2">
                 {highlights.map((h, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#7A22FF]" />
-                    <span className="text-sm text-white/65">{h}</span>
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
+                    <span className="text-sm text-gray-600">{h}</span>
                   </li>
                 ))}
               </ul>
@@ -63,27 +48,24 @@ export default function SolucionView({ specialty, subtitle, icon, features = [],
         </section>
       )}
 
-      {/* ── Features Grid (glassmorphism cards) ── */}
+      {/* ── Features Grid ── */}
       {features.length > 0 && (
-        <section className="relative px-4 pb-24 sm:px-8">
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black via-[#040010] to-black" />
-          <div className="relative z-10 mx-auto max-w-6xl">
-            <h2 className="mb-10 text-center text-2xl font-bold tracking-tight text-white sm:text-3xl">
+        <section className="bg-[#f5f5f7] px-4 py-20 sm:px-8">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="mb-10 text-center text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">
               Funcionalidades del módulo
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((f, i) => (
                 <div key={i}
-                  className="group rounded-2xl border border-white/[0.06] bg-white/[0.015] p-6 backdrop-blur-sm
-                             transition hover:border-[#7A22FF]/30 hover:bg-[#7A22FF]/[0.03]
-                             hover:shadow-[0_0_36px_-8px_rgba(122,34,255,0.2)]">
-                  <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl
-                                  bg-white/[0.05] text-[#9450FF] ring-1 ring-[#7A22FF]/15
-                                  transition group-hover:scale-110 group-hover:ring-[#7A22FF]/50">
-                    <span className="text-lg">{f.icon || '⚡'}</span>
+                  className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm
+                             transition hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/5">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50
+                                  transition group-hover:scale-110">
+                    <span className="text-xl">{f.icon || '⚡'}</span>
                   </div>
-                  <h3 className="mb-2 text-base font-semibold text-white">{f.title}</h3>
-                  <p className="text-sm leading-relaxed text-white/45">{f.desc}</p>
+                  <h3 className="mb-2 text-base font-semibold text-gray-950">{f.title}</h3>
+                  <p className="text-sm leading-relaxed text-gray-500">{f.desc}</p>
                 </div>
               ))}
             </div>
@@ -92,16 +74,14 @@ export default function SolucionView({ specialty, subtitle, icon, features = [],
       )}
 
       {/* ── CTA ── */}
-      <section className="px-4 pb-20 sm:px-8">
+      <section className="px-4 py-20 sm:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="mb-6 text-lg text-white/45">
+          <p className="mb-6 text-lg text-gray-500">
             Comienza a digitalizar tu práctica de {specialty.toLowerCase()} hoy.
           </p>
           <Link to="/login"
-            className="inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7A22FF] to-[#5B27B5]
-                       px-8 py-4 text-base font-semibold text-white
-                       shadow-[0_8px_40px_-8px_rgba(122,34,255,0.7)]
-                       transition hover:brightness-110 hover:scale-[1.02] active:scale-[0.97]">
+            className="inline-flex items-center gap-2.5 rounded-2xl bg-blue-600 px-8 py-4 text-base font-semibold text-white
+                       shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.97]">
             Comenzar <ArrowRight className="h-5 w-5" />
           </Link>
         </div>

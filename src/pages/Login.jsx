@@ -72,68 +72,57 @@ export default function Login() {
   if (loading) return <FullScreenSpinner />;
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-clinical-900 px-4 py-12">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#f5f5f7] px-4 py-12"
+         style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
 
-      {/* ── Destellos de fondo decorativos ── */}
-      <Glow
-        className="absolute -left-40 -top-40 h-[520px] w-[520px] bg-electric-500 opacity-[0.12]"
-      />
-      <Glow
-        className="absolute -bottom-32 -right-32 h-[400px] w-[400px] bg-violet-500 opacity-[0.10]"
-      />
-      <Glow
-        className="absolute left-1/2 top-1/3 h-[260px] w-[260px] -translate-x-1/2 bg-electric-700 opacity-[0.07]"
-      />
+      {/* Glow azul sutil */}
+      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[600px] -translate-x-1/2 rounded-full bg-blue-200/40 blur-[140px]" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-20 right-0 h-[300px] w-[400px] rounded-full bg-blue-100/30 blur-[100px]" />
 
-      {/* ── Tarjeta principal ── */}
+      {/* ── Tarjeta ── */}
       <div className="relative z-10 w-full max-w-md">
 
-        {/* LOGO — escalado grande y prominente */}
-        <div className="mb-10 flex flex-col items-center gap-5">
-          <div className="flex h-28 w-28 items-center justify-center rounded-3xl bg-electric-gradient p-3 shadow-[0_0_60px_-10px_rgba(122,34,255,0.55)]">
-            <Logo className="h-full w-full" />
+        {/* Logo + nombre */}
+        <div className="mb-8 flex flex-col items-center gap-4">
+          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-600 shadow-xl shadow-blue-500/25">
+            <svg viewBox="0 0 24 24" className="h-10 w-10 text-white" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
           </div>
           <div className="text-center">
-            <h1 className="font-display text-3xl font-bold tracking-tight text-white">
-              MediCo<span className="text-electric-400"> LatAm</span>
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-950">
+              MediCo<span className="text-blue-600"> LatAm</span>
             </h1>
-            <p className="mt-1.5 text-sm font-medium tracking-[0.15em] text-clinical-400 uppercase">
+            <p className="mt-1 text-xs font-medium uppercase tracking-[0.15em] text-gray-400">
               Plataforma clínica regional
             </p>
           </div>
         </div>
 
         {/* Formulario */}
-        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.04] px-8 py-10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.7)] backdrop-blur-sm">
+        <div className="rounded-2xl border border-gray-200 bg-white px-8 py-10 shadow-xl shadow-gray-300/30">
 
-          <div className="mb-8">
-            <h2 className="font-display text-xl font-semibold text-white">
-              Iniciar sesión
-            </h2>
-            <p className="mt-1 text-sm text-clinical-400">
-              Accede con tu correo institucional y contraseña.
-            </p>
+          <div className="mb-7">
+            <h2 className="text-xl font-semibold text-gray-950">Iniciar sesión</h2>
+            <p className="mt-1 text-sm text-gray-500">Accede con tu correo institucional y contraseña.</p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
 
             {/* Email */}
-            <Field
-              id="email"
-              label="Correo electrónico"
-              type="email"
-              autoComplete="email"
-              placeholder="usuario@clinica.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className="text-sm font-medium text-gray-700">Correo electrónico</label>
+              <input
+                id="email" type="email" autoComplete="email" placeholder="usuario@clinica.com"
+                value={email} onChange={e => setEmail(e.target.value)} required
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-950 placeholder-gray-400
+                           outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-400/20"
+              />
+            </div>
 
             {/* Password */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-clinical-300">
-                Contraseña
-              </label>
+              <label htmlFor="password" className="text-sm font-medium text-gray-700">Contraseña</label>
               <div className="relative">
                 <input
                   id="password"
@@ -143,13 +132,14 @@ export default function Login() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
-                  className="dark-input w-full pr-11"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 pr-11 text-sm text-gray-950 placeholder-gray-400
+                             outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-400/20"
                 />
                 <button
                   type="button"
                   aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   onClick={() => setShowPwd(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-clinical-500 transition hover:text-clinical-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-700"
                 >
                   {showPwd ? <EyeOff /> : <EyeOn />}
                 </button>
@@ -158,10 +148,7 @@ export default function Login() {
 
             {/* Error */}
             {error && (
-              <div
-                role="alert"
-                className="flex items-start gap-2.5 rounded-xl border border-status-danger/30 bg-status-danger/10 px-4 py-3 text-sm text-status-danger"
-              >
+              <div role="alert" className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                 <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -171,19 +158,18 @@ export default function Login() {
             <button
               type="submit"
               disabled={submitting || !email || !password}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-electric-gradient py-3 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(122,34,255,0.6)] transition hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-electric-400"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white
+                         shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 active:bg-blue-800
+                         disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               {submitting ? <Spinner /> : 'Entrar al sistema'}
             </button>
 
           </form>
 
-          {/* Pie del formulario */}
-          <div className="mt-8 flex items-center justify-between border-t border-white/[0.07] pt-6 text-xs text-clinical-500">
-            <Link
-              to="/register"
-              className="transition hover:text-electric-400"
-            >
+          {/* Pie */}
+          <div className="mt-7 flex items-center justify-between border-t border-gray-100 pt-5 text-xs text-gray-400">
+            <Link to="/register" className="transition hover:text-blue-600">
               ¿Sin cuenta? Crear cuenta
             </Link>
             <span className="flex items-center gap-1.5">
@@ -193,13 +179,11 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Badges de cumplimiento */}
-        <div className="mt-6 flex justify-center gap-3">
+        {/* Badges */}
+        <div className="mt-5 flex justify-center gap-3">
           {['HIPAA', 'LGPD', 'LFPDPPP'].map(b => (
-            <span
-              key={b}
-              className="rounded-full border border-violet-700/40 bg-violet-900/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-400"
-            >
+            <span key={b}
+              className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-600">
               {b}
             </span>
           ))}
