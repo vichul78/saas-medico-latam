@@ -1,37 +1,17 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient.js';
 import { useAuth } from '@/hooks/useAuth.js';
-import { sendWhatsAppResult } from '@/lib/twilioWhatsapp.js';
-
-/**
- * ┌────────────────────────────────────────────────────────────────────────────┐
- * │  DEV/TESTING SHORTCUT - NO ES EL PATH DE PRODUCCION                       │
- * │                                                                            │
- * │  Este hook envia un WhatsApp directamente desde el navegador via la        │
- * │  libreria twilioWhatsapp.js (client-side). Esta BLOQUEADO en builds de     │
- * │  produccion por el guard import.meta.env.DEV en twilioWhatsapp.js.         │
- * │                                                                            │
- * │  PARA PRODUCCION, el flujo canonico es:                                    │
- * │    SendWhatsAppModal  ->  useShareInforme hook  ->  Edge Function          │
- * │    (src/components/clinical/SendWhatsAppModal.jsx)                          │
- * │    (src/hooks/useShareInforme.js)                                          │
- * │    (supabase/functions/send-whatsapp/index.ts)                             │
- * │                                                                            │
- * │  Ese flujo ejecuta la llamada a Twilio server-side (seguro, sin exponer    │
- * │  credenciales) y permite al usuario editar telefono y resumen antes de     │
- * │  enviar.                                                                   │
- * └────────────────────────────────────────────────────────────────────────────┘
- */
 
 /**
  * useEnvioWhatsapp — hook para enviar un informe firmado por WhatsApp.
  *
+ * Invoca la Edge Function `send-whatsapp` server-side (seguro, sin exponer
+ * credenciales Twilio en el cliente).
+ *
  * Flujo:
  *  1. Obtiene datos del informe (estudio + paciente)
  *  2. Valida que el estado sea 'firmado'
- *  3. Genera token unico y lo inserta en share_tokens (24h de expiracion)
- *  4. Construye la URL publica del resultado
- *  5. Envia el mensaje via Twilio (client-side, solo dev)
+ *  3. Llama a la Edge Function que genera share_token y envia el mensaje
  *
  * @returns {{
  *   sendResultado: (informeId: string) => Promise<{success: boolean, error: string|null}>,
@@ -116,53 +96,39 @@ export function useEnvioWhatsapp() {
         ? paciente.telefono
         : '+' + digitsOnly;
 
-      // 3. Generate unique token
-      const token = crypto.randomUUID();
+      // 3. Build summary (first 200 chars)
+      const textoCompleto = informe.texto || '';
+      const resumenTexto = textoCompleto.length > 200
+        ? textoCompleto.substring(0, 200) + '...'
+        : textoCompleto;
 
-      // 4. Insert into share_tokens with 24h expiry (aligns with get_shared_informe RPC)
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      const clinicaId = profile?.organization_id || informe.clinica_id;
+      const pacienteNombre = `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim();
 
-      const { error: insertError } = await supabase
-        .from('share_tokens')
-        .insert({
-          informe_id: informeId,
-          clinica_id: clinicaId,
-          token,
-          expires_at: expiresAt,
-          created_by: profile?.id || null,
-        });
+      // 4. Invoke Edge Function (server-side Twilio call — seguro)
+      const { data: response, error: fnError } = await supabase.functions.invoke(
+        'send-whatsapp',
+        {
+          body: {
+            informe_id:     informeId,
+            patient_phone:  telefonoNormalizado,
+            patient_name:   pacienteNombre,
+            report_summary: resumenTexto,
+          },
+        },
+      );
 
-      if (insertError) {
-        const msg = insertError.message || 'Error al crear token de acceso';
+      if (fnError) {
+        const msg = fnError.message || 'Error al enviar mensaje';
         setError(msg);
         setLoading(false);
         return { success: false, error: msg };
       }
 
-      // 5. Build public URL
-      const linkUrl = `${window.location.origin}/resultado/${token}`;
-
-      // 6. Generate summary (first 200 chars + ellipsis)
-      const textoCompleto = informe.texto || '';
-      const resumenTexto = textoCompleto.length > 200
-        ? textoCompleto.substring(0, 200) + '... Ver informe completo en el enlace'
-        : textoCompleto;
-
-      // 7. Send via Twilio
-      const pacienteNombre = `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim();
-      const result = await sendWhatsAppResult({
-        informeId,
-        pacienteTelefono: telefonoNormalizado,
-        pacienteNombre,
-        resumenTexto,
-        linkUrl,
-      });
-
-      if (!result.success) {
-        setError(result.error);
+      if (response && !response.success) {
+        const msg = response.error || 'Error desconocido al enviar WhatsApp';
+        setError(msg);
         setLoading(false);
-        return { success: false, error: result.error };
+        return { success: false, error: msg };
       }
 
       setSuccess(true);
