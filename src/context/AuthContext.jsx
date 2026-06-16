@@ -27,56 +27,58 @@ export function AuthProvider({ children }) {
   const [session, setSession]   = useState(null);
   const [profile, setProfile]   = useState(null);
   const [loading, setLoading]   = useState(true);   // cargando sesión inicial
-  const [profLoading, setProfLoading] = useState(false);
 
-  // Evita doble fetch si onAuthStateChange y getSession disparan al mismo tiempo.
-  const fetchingRef = useRef(false);
+  // Cachea el último userId cuyo perfil ya se cargó para evitar refetch en cada
+  // TOKEN_REFRESHED / INITIAL_SESSION duplicado, sin colgar el estado de loading.
+  const loadedForRef = useRef(null);
 
   // ── Carga el perfil desde Supabase ──────────────────────────────────────
+  // Devuelve siempre (no lanza). Nunca deja un flag de loading colgado: el
+  // control de `loading` vive fuera de esta función, de forma determinista.
   const loadProfile = useCallback(async (userId) => {
-    if (!userId || fetchingRef.current) return;
-    fetchingRef.current = true;
-    setProfLoading(true);
+    if (!userId) {
+      setProfile(null);
+      loadedForRef.current = null;
+      return;
+    }
     try {
       const { profile: p, error } = await getProfile(userId);
       if (error) {
-        /*
-          Estrategia híbrida de logging:
-            - console.error registra el error ORIGINAL en inglés (objeto completo
-              con code, message, details, hint) para depuración técnica.
-            - La UI nunca recibe este mensaje; el flujo simplemente deja profile=null
-              y el ProtectedRoute redirige a /login en el siguiente render.
-        */
         // eslint-disable-next-line no-console
         console.error(
           '[AuthContext] loadProfile — Supabase error (original EN):',
-          { code: error.code, message: error.message, details: error.details, hint: error.hint },
+          { code: error?.code, message: error?.message, details: error?.details, hint: error?.hint },
         );
         setProfile(null);
+        loadedForRef.current = null;
       } else {
         setProfile(p);
+        loadedForRef.current = userId;
       }
     } catch (unexpectedError) {
-      // Errores de red u otros fallos no-Supabase: también se loggean en crudo.
       // eslint-disable-next-line no-console
       console.error('[AuthContext] loadProfile — unexpected error:', unexpectedError);
       setProfile(null);
-    } finally {
-      fetchingRef.current = false;
-      setProfLoading(false);
+      loadedForRef.current = null;
     }
   }, []);
 
   // ── Sesión inicial (una sola vez al montar) ─────────────────────────────
+  // `loading` SIEMPRE se libera en el finally, pase lo que pase con el perfil.
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      const { session: s } = await getSession();
-      if (!cancelled) {
+      try {
+        const { session: s } = await getSession();
+        if (cancelled) return;
         setSession(s);
         if (s?.user?.id) await loadProfile(s.user.id);
-        setLoading(false);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('[AuthContext] init session — error:', e);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
 
@@ -88,15 +90,20 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthChange(async (event, s) => {
       setSession(s);
 
-      if (event === 'SIGNED_IN' && s?.user?.id) {
-        await loadProfile(s.user.id);
-      }
+      const uid = s?.user?.id ?? null;
 
-      if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT' || !uid) {
         setProfile(null);
+        loadedForRef.current = null;
+      } else if (
+        (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') &&
+        loadedForRef.current !== uid
+      ) {
+        // Solo recargamos si el perfil aún no corresponde a este usuario.
+        await loadProfile(uid);
       }
 
-      // Aseguramos que el spinner inicial se quite si llega un evento tardío.
+      // El spinner inicial nunca debe quedar colgado por un evento de auth.
       setLoading(false);
     });
 
@@ -125,13 +132,13 @@ export function AuthProvider({ children }) {
   const value = useMemo(() => ({
     session,
     profile,
-    loading: loading || profLoading,
+    loading,
     isAuthenticated: !!session,
     role: profile?.role ?? null,          // 'admin_clinica' | 'medico' | 'paciente' | null
     organization: profile?.organizations ?? null,
     signOut,
     refreshProfile,
-  }), [session, profile, loading, profLoading, signOut, refreshProfile]);
+  }), [session, profile, loading, signOut, refreshProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
