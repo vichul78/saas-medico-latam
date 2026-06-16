@@ -100,16 +100,22 @@ export default function NewInvoiceModal({ onClose, onCreate, orgCurrency = 'USD'
     try {
       const like = `%${term.trim()}%`;
       const { data, error } = await supabase
-        .from('patients')
-        .select('id, first_name, last_name, national_id')
-        .eq('organization_id', organization.id)
-        .or(`first_name.ilike.${like},last_name.ilike.${like},national_id.ilike.${like}`)
+        .from('pacientes')
+        .select('id, nombre, apellido, documento')
+        .eq('clinica_id', organization.id)
+        .or(`nombre.ilike.${like},apellido.ilike.${like},documento.ilike.${like}`)
         .limit(7);
       if (error) {
         // eslint-disable-next-line no-console
         console.error('[NewInvoiceModal] patient search (EN):', error);
       }
-      setPatResults(data ?? []);
+      // Normaliza paciente(ES) → forma legacy(EN).
+      setPatResults((data ?? []).map(p => ({
+        id:          p.id,
+        first_name:  p.nombre,
+        last_name:   p.apellido,
+        national_id: p.documento,
+      })));
     } finally { setPatLoading(false); }
   }, [organization]);
 
@@ -155,19 +161,11 @@ export default function NewInvoiceModal({ onClose, onCreate, orgCurrency = 'USD'
     setApiError('');
 
     const payload = {
-      invoice_number: invoiceNum,
-      patient_id:     patientId,
-      doctor_id:      doctorId || null,
+      patient_id: patientId,
       currency,
-      subtotal,
-      tax_rate:       taxRate,
+      total,                       // monto final (subtotal + impuesto)
       status,
-      issued_at:      issuedAt || null,
-      due_at:         dueAt    || null,
-      payment_method: status === 'pagada' ? payMethod : null,
-      cfdi_uuid:      cfdiUuid || null,
-      nfse_number:    nfseNum  || null,
-      notes:          notes    || null,
+      notes:      notes || null,
     };
 
     const { error } = await onCreate(payload);

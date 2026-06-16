@@ -47,10 +47,10 @@ export default function DicomPatientSelector({ onStudySelect, compact = false })
     try {
       const like = `%${term.trim()}%`;
       const { data, error } = await supabase
-        .from('patients')
-        .select('id, first_name, last_name, national_id, date_of_birth')
-        .eq('organization_id', orgId)
-        .or(`first_name.ilike.${like},last_name.ilike.${like},national_id.ilike.${like}`)
+        .from('pacientes')
+        .select('id, nombre, apellido, documento, fecha_nacimiento')
+        .eq('clinica_id', orgId)
+        .or(`nombre.ilike.${like},apellido.ilike.${like},documento.ilike.${like}`)
         .limit(8);
 
       if (error) {
@@ -58,7 +58,14 @@ export default function DicomPatientSelector({ onStudySelect, compact = false })
         console.error('[DicomPatientSelector] patients error (EN):', error);
         setPatients([]);
       } else {
-        setPatients(data ?? []);
+        // Normaliza paciente(ES) → forma legacy(EN) usada en el render.
+        setPatients((data ?? []).map(p => ({
+          id:            p.id,
+          first_name:    p.nombre,
+          last_name:     p.apellido,
+          national_id:   p.documento,
+          date_of_birth: p.fecha_nacimiento,
+        })));
       }
     } finally {
       setLoadPat(false);
@@ -84,17 +91,27 @@ export default function DicomPatientSelector({ onStudySelect, compact = false })
 
     try {
       const { data, error } = await supabase
-        .from('studies')
-        .select('id, study_date, modality, specialty, status, description, accession_number, dicom_study_uid')
-        .eq('patient_id', patient.id)
-        .order('study_date', { ascending: false })
+        .from('estudios')
+        .select('id, fecha, tipo, estado, metadata, archivo_dicom_url')
+        .eq('paciente_id', patient.id)
+        .order('fecha', { ascending: false })
         .limit(20);
 
       if (error) {
         // eslint-disable-next-line no-console
         console.error('[DicomPatientSelector] studies error (EN):', error);
       } else {
-        setStudies(data ?? []);
+        // Normaliza estudio(ES) → forma legacy(EN) usada en el render.
+        setStudies((data ?? []).map(s => ({
+          id:               s.id,
+          study_date:       s.fecha,
+          modality:         s.tipo,
+          specialty:        s.metadata?.especialidad ?? null,
+          status:           s.estado,
+          description:      s.metadata?.descripcion ?? null,
+          accession_number: s.metadata?.accession ?? null,
+          dicom_study_uid:  s.metadata?.dicom_study_uid ?? s.archivo_dicom_url ?? null,
+        })));
       }
     } finally {
       setLoadStd(false);

@@ -45,25 +45,23 @@ export function useInvoices({ status = null, pageSize = 20, search = '' } = {}) 
     const to   = from + pageSize - 1;
 
     try {
+      // Modelo real en español: tabla `facturas` (monto/moneda/estado/concepto).
       let query = supabase
-        .from('invoices')
+        .from('facturas')
         .select(
-          `id, invoice_number, status, currency, subtotal, tax_rate,
-           tax_amount, total, issued_at, due_at, paid_at, payment_method,
-           cfdi_uuid, nfse_number, notes, created_at,
-           patients ( id, first_name, last_name, national_id ),
-           doctors  ( id, profiles ( first_name, last_name ) )`,
+          `id, monto, moneda, estado, concepto, metadata, created_at,
+           pacientes ( id, nombre, apellido, documento )`,
           { count: 'exact' },
         )
-        .eq('organization_id', orgId)
+        .eq('clinica_id', orgId)
         .order('created_at', { ascending: false })
         .range(from, to);
 
-      if (status) query = query.eq('status', status);
+      if (status) query = query.eq('estado', status);
 
       if (search.trim()) {
         const term = `%${search.trim()}%`;
-        query = query.or(`invoice_number.ilike.${term}`);
+        query = query.or(`concepto.ilike.${term}`);
       }
 
       const { data, error: sbErr, count } = await query;
@@ -77,7 +75,26 @@ export function useInvoices({ status = null, pageSize = 20, search = '' } = {}) 
         setError('No se pudieron cargar las facturas. Verifica la conexión.');
         setInvoices([]);
       } else {
-        setInvoices(data ?? []);
+        // Normaliza factura(ES) → forma legacy(EN) que consume BillingPage.
+        const norm = (data ?? []).map((f) => ({
+          id:             f.id,
+          invoice_number: f.id?.slice(0, 8)?.toUpperCase() ?? '—',
+          status:         f.estado,
+          currency:       f.moneda,
+          total:          Number(f.monto) || 0,
+          issued_at:      f.created_at,
+          due_at:         f.metadata?.due_at ?? null,
+          notes:          f.concepto,
+          patients: f.pacientes
+            ? {
+                id:          f.pacientes.id,
+                first_name:  f.pacientes.nombre,
+                last_name:   f.pacientes.apellido,
+                national_id: f.pacientes.documento,
+              }
+            : null,
+        }));
+        setInvoices(norm);
         setTotalCount(count ?? 0);
       }
     } catch (err) {
@@ -103,9 +120,9 @@ export function useInvoices({ status = null, pageSize = 20, search = '' } = {}) 
       const end   = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
 
       const { data, error: sbErr } = await supabase
-        .from('invoices')
-        .select('status, total, currency, issued_at, paid_at')
-        .eq('organization_id', orgId);
+        .from('facturas')
+        .select('estado, monto, moneda, created_at')
+        .eq('clinica_id', orgId);
 
       if (sbErr) {
         // eslint-disable-next-line no-console
@@ -115,12 +132,17 @@ export function useInvoices({ status = null, pageSize = 20, search = '' } = {}) 
         return;
       }
 
-      const rows = data ?? [];
+      // Normaliza a la forma que usa el cálculo (status/total/issued_at).
+      const rows = (data ?? []).map(r => ({
+        status:    r.estado,
+        total:     Number(r.monto) || 0,
+        issued_at: (r.created_at ?? '').slice(0, 10),
+      }));
 
       // Calcular métricas en memoria (evita múltiples queries)
       const thisMonth = rows.filter(r => r.issued_at >= start && r.issued_at <= end);
       const pagadas   = rows.filter(r => r.status === 'pagada');
-      const pendientes= rows.filter(r => r.status === 'emitida' || r.status === 'borrador');
+      const pendientes= rows.filter(r => r.status === 'pendiente');
       const vencidas  = rows.filter(r => r.status === 'vencida');
 
       const sum = (arr) => arr.reduce((acc, r) => acc + (Number(r.total) || 0), 0);
@@ -155,15 +177,19 @@ export function useInvoices({ status = null, pageSize = 20, search = '' } = {}) 
   }, [fetchMetrics]);
 
   // ── CREATE invoice ───────────────────────────────────────────────────────
-  const createInvoice = useCallback(async (payload) => {
+  const createInvoice = useCallback(async (payload = {}) => {
+    // Traduce payload legacy (total/currency/notes/patient_id) → modelo español.
     const insertData = {
-      ...payload,
-      organization_id: orgId,
-      currency: payload.currency ?? organization?.currency ?? 'USD',
+      clinica_id:  orgId,
+      paciente_id: payload.patient_id ?? payload.paciente_id ?? null,
+      monto:       Number(payload.total ?? payload.monto ?? 0),
+      moneda:      payload.currency ?? payload.moneda ?? organization?.currency ?? 'USD',
+      estado:      payload.status ?? payload.estado ?? 'pendiente',
+      concepto:    payload.notes ?? payload.concepto ?? null,
     };
 
     const { data, error: sbErr } = await supabase
-      .from('invoices')
+      .from('facturas')
       .insert(insertData)
       .select()
       .single();
@@ -183,14 +209,11 @@ export function useInvoices({ status = null, pageSize = 20, search = '' } = {}) 
 
   // ── UPDATE status (ej. borrador → emitida → pagada) ──────────────────────
   const updateInvoiceStatus = useCallback(async (invoiceId, newStatus, extra = {}) => {
-    const patch = {
-      status: newStatus,
-      ...(newStatus === 'pagada' ? { paid_at: new Date().toISOString() } : {}),
-      ...extra,
-    };
+    // El modelo español usa la columna `estado` (no `status`/`paid_at`).
+    const patch = { estado: newStatus, ...extra };
 
     const { data, error: sbErr } = await supabase
-      .from('invoices')
+      .from('facturas')
       .update(patch)
       .eq('id', invoiceId)
       .select()
@@ -202,7 +225,7 @@ export function useInvoices({ status = null, pageSize = 20, search = '' } = {}) 
         code: sbErr.code, message: sbErr.message,
       });
     } else {
-      setInvoices(prev => prev.map(inv => inv.id === invoiceId ? { ...inv, ...patch } : inv));
+      setInvoices(prev => prev.map(inv => inv.id === invoiceId ? { ...inv, status: newStatus } : inv));
       await fetchMetrics();
     }
 
