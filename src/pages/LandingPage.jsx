@@ -1,31 +1,58 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Hls from 'hls.js';
 import {
-  Stethoscope, Brain, Monitor, Receipt, ChevronDown,
-  ArrowRight, Sparkles, Zap, CheckCircle2, BarChart3,
-  ShieldCheck, Globe, CalendarCheck, FileImage, Menu, X,
+  ArrowRight,
+  Activity,
+  ShieldCheck,
+  Smartphone,
+  ScanLine,
+  UserRound,
+  FileText,
+  Brain,
+  Monitor,
+  Receipt,
+  CheckCircle2,
+  BarChart3,
+  ChevronDown,
+  Sparkles,
+  Globe,
+  CalendarCheck,
+  FileImage,
+  Stethoscope,
+  Menu,
+  X,
 } from 'lucide-react';
 import { ContainerScroll } from '../components/ui/container-scroll-animation';
 import { ModernFeatures } from '../components/ui/modern-features';
 import { SpecialistsCarousel } from '../components/ui/specialists-carousel';
-import { ContainerTextFlip } from '../components/ui/container-text-flip';
 
-/*
-  ┌─────────────────────────────────────────────────────────────────────────────
-  │  LandingPage — Hero CodeNest × MediCo LatAm
-  │
-  │  Hero: dark full-screen HLS video bg, liquid-glass card, Apple-style
-  │        typography (Inter + Plus Jakarta Sans + Instrument Serif)
-  │  Color: #070b0a bg · #5ed29c accent (hero only) · #7A22FF (rest of site)
-  │  Nav: same medical mega-dropdowns, white minimalist, hamburger mobile
-  └─────────────────────────────────────────────────────────────────────────────
-*/
+/* ─────────────────────────────────────────────────────────────────────────────
+   LOGO SVG
+───────────────────────────────────────────────────────────────────────────── */
+function Logo() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 256 256" fill="none">
+      <path
+        fill="rgb(84, 84, 84)"
+        d="M 160 88 L 194 34 L 216 0 L 256 0 L 256 40 L 221.5 93.5 L 200 128 L 256 128 L 256 256 L 96 256 L 96 168 L 64.246 220 L 40 256 L 0 256 L 0 216 L 34 162 L 56 128 L 0 128 L 0 0 L 160 0 Z"
+      />
+    </svg>
+  );
+}
 
-/* ── HLS Video Stream ──────────────────────────────────────────────────────── */
-const HLS_SRC = 'https://stream.mux.com/tLkHO1qZoaaQOUeVWo8hEBeGQfySP02EPS02BmnNFyXys.m3u8';
+/* ─────────────────────────────────────────────────────────────────────────────
+   NAV DATA
+───────────────────────────────────────────────────────────────────────────── */
+const NAV_LINKS = [
+  { label: 'Inicio',      to: '/' },
+  { label: 'Plataforma',  to: '/productos' },
+  { label: 'Beneficios',  to: '/funcionalidades/gestion-integral' },
+  { label: 'Demo',        to: '/login' },
+];
 
-/* ── Nav dropdown data (unchanged) ─────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────────────────
+   DROPDOWN DATA (kept intact — used in mobile nav)
+───────────────────────────────────────────────────────────────────────────── */
 const SOLUCIONES_COL1 = [
   { label: 'Radiología',    href: '/soluciones/radiologia',   icon: '🫁' },
   { label: 'Dental',        href: '/soluciones/dental',       icon: '🦷' },
@@ -35,26 +62,26 @@ const SOLUCIONES_COL1 = [
   { label: 'Audiometría',   href: '/soluciones/audiometria',  icon: '👂' },
 ];
 const SOLUCIONES_COL2 = [
-  { label: 'Patología',     href: '/soluciones/patologia',    icon: '🧬' },
-  { label: 'Obstétrico',    href: '/soluciones/obstetrico',   icon: '🤱' },
-  { label: 'Colposcopia',   href: '/soluciones/colposcopia',  icon: '🔎' },
-  { label: 'Oftalmología',  href: '/soluciones/oftalmologia', icon: '👁️' },
-  { label: 'Veterinaria',   href: '/soluciones/veterinaria',  icon: '🐾' },
-  { label: 'Teleradiología',href: '/soluciones/teleradiologia',icon:'🌐', highlight: true },
+  { label: 'Patología',      href: '/soluciones/patologia',     icon: '🧬' },
+  { label: 'Obstétrico',     href: '/soluciones/obstetrico',    icon: '🤱' },
+  { label: 'Colposcopia',    href: '/soluciones/colposcopia',   icon: '🔎' },
+  { label: 'Oftalmología',   href: '/soluciones/oftalmologia',  icon: '👁️' },
+  { label: 'Veterinaria',    href: '/soluciones/veterinaria',   icon: '🐾' },
+  { label: 'Teleradiología', href: '/soluciones/teleradiologia',icon: '🌐', highlight: true },
 ];
 
 const FUNCIONALIDADES_BLOCKS = [
   { title: 'Tecnología Avanzada', items: [
-    { label: 'IA Asistente',           href: '/funcionalidades/tecnologia/ia-asistente' },
-    { label: 'Visor DICOM',            href: '/funcionalidades/tecnologia/visor-dicom' },
-    { label: 'Envío de resultados',    href: '/funcionalidades/tecnologia/envio-resultados' },
-    { label: 'Compatibilidad total',   href: '/funcionalidades/tecnologia/compatibilidad-total' },
+    { label: 'IA Asistente',         href: '/funcionalidades/tecnologia/ia-asistente' },
+    { label: 'Visor DICOM',          href: '/funcionalidades/tecnologia/visor-dicom' },
+    { label: 'Envío de resultados',  href: '/funcionalidades/tecnologia/envio-resultados' },
+    { label: 'Compatibilidad total', href: '/funcionalidades/tecnologia/compatibilidad-total' },
   ]},
   { title: 'Gestión Integral', items: [
-    { label: 'Almacenamiento seguro',  href: '/funcionalidades/gestion/almacenamiento-seguro' },
-    { label: 'Gestión de estudios',    href: '/funcionalidades/gestion/estudios' },
-    { label: 'Citas y agendas',        href: '/funcionalidades/gestion/citas-agendas' },
-    { label: 'Facturación y cobros',   href: '/funcionalidades/gestion/facturacion-cobros' },
+    { label: 'Almacenamiento seguro', href: '/funcionalidades/gestion/almacenamiento-seguro' },
+    { label: 'Gestión de estudios',   href: '/funcionalidades/gestion/estudios' },
+    { label: 'Citas y agendas',       href: '/funcionalidades/gestion/citas-agendas' },
+    { label: 'Facturación y cobros',  href: '/funcionalidades/gestion/facturacion-cobros' },
   ]},
   { title: 'Fácil de Usar', items: [
     { label: 'Portal pacientes',       href: '/funcionalidades/facil-uso/portal-pacientes' },
@@ -62,13 +89,15 @@ const FUNCIONALIDADES_BLOCKS = [
     { label: 'Recordatorios de citas', href: '/funcionalidades/facil-uso/recordatorios-citas' },
   ]},
   { title: 'Personalizado', items: [
-    { label: 'Adaptación total',       href: '/funcionalidades/personalizado/adaptacion-total' },
-    { label: 'Integraciones',          href: '/funcionalidades/personalizado/integraciones' },
-    { label: 'Modelo de precios',      href: '/funcionalidades/personalizado/modelo-precios' },
+    { label: 'Adaptación total',  href: '/funcionalidades/personalizado/adaptacion-total' },
+    { label: 'Integraciones',     href: '/funcionalidades/personalizado/integraciones' },
+    { label: 'Modelo de precios', href: '/funcionalidades/personalizado/modelo-precios' },
   ]},
 ];
 
-/* ── Product + Features data ────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────────────────
+   PRODUCT + FEATURES DATA (unchanged)
+───────────────────────────────────────────────────────────────────────────── */
 const PRODUCT_TABS = [
   { id: 'pacs', label: 'Visor PACS', icon: <Monitor className="h-4 w-4" />,
     headline: 'Visor DICOM nativo en la nube',
@@ -85,512 +114,338 @@ const PRODUCT_TABS = [
 ];
 
 const FEATURES = [
-  { icon: <FileImage className="h-6 w-6" />, title: 'DICOM nativo',       desc: 'CT · MR · DX · US. Sin plugins.' },
-  { icon: <Brain className="h-6 w-6" />,     title: 'Copiloto Iris',      desc: 'IA clínica para informes y diagnósticos.' },
+  { icon: <FileImage className="h-6 w-6" />, title: 'DICOM nativo',        desc: 'CT · MR · DX · US. Sin plugins.' },
+  { icon: <Brain className="h-6 w-6" />,     title: 'Copiloto Iris',       desc: 'IA clínica para informes y diagnósticos.' },
   { icon: <CalendarCheck className="h-6 w-6" />, title: 'Agenda inteligente', desc: 'Citas multi-recurso con recordatorios.' },
-  { icon: <ShieldCheck className="h-6 w-6" />,   title: 'HIPAA · LGPD',  desc: 'Cumplimiento regulatorio regional.' },
-  { icon: <Globe className="h-6 w-6" />,     title: '11 monedas LatAm',   desc: 'MXN · BRL · ARS · COP · CLP y más.' },
+  { icon: <ShieldCheck className="h-6 w-6" />,   title: 'HIPAA · LGPD',   desc: 'Cumplimiento regulatorio regional.' },
+  { icon: <Globe className="h-6 w-6" />,     title: '11 monedas LatAm',    desc: 'MXN · BRL · ARS · COP · CLP y más.' },
   { icon: <Stethoscope className="h-6 w-6" />, title: '11 especialidades', desc: 'Radiología, Dental, Cardio y más.' },
 ];
 
 const STATS = [
-  { value: '+500', label: 'Clínicas activas' },
-  { value: '11',   label: 'Monedas LatAm' },
-  { value: '99.9%', label: 'Uptime SLA' },
+  { value: '+500',   label: 'Clínicas activas' },
+  { value: '11',     label: 'Monedas LatAm' },
+  { value: '99.9%',  label: 'Uptime SLA' },
   { value: '<200ms', label: 'Latencia media' },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   HLS VIDEO BACKGROUND
+   NAVBAR — centered pill, logo circle, simple links
 ═══════════════════════════════════════════════════════════════════════════════ */
-function HeroVideo() {
-  const videoRef = useRef(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (Hls.isSupported()) {
-      const hls = new Hls({ enableWorker: false });
-      hls.loadSource(HLS_SRC);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(() => {});
-      });
-      return () => hls.destroy();
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari native HLS
-      video.src = HLS_SRC;
-      video.play().catch(() => {});
-    }
-  }, []);
+function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <video
-      ref={videoRef}
-      autoPlay
-      muted
-      loop
-      playsInline
-      className="absolute inset-0 h-full w-full object-cover"
-      style={{ opacity: 0.6, pointerEvents: 'none' }}
-    />
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════
-   LIQUID GLASS CARD (CodeNest spec, adapted to medical content)
-═══════════════════════════════════════════════════════════════════════════════ */
-function LiquidGlassCard() {
-  return (
-    <div
-      className="relative mb-0 translate-y-[-50px] rounded-2xl"
-      style={{
-        width: 200,
-        height: 200,
-        background: 'rgba(255,255,255,0.01)',
-        backgroundBlendMode: 'luminosity',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1)',
-      }}
-    >
-      {/* gradient border via pseudo-element-equivalent */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-2xl"
-        style={{
-          padding: '1.4px',
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%)',
-          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-          WebkitMaskComposite: 'xor',
-          maskComposite: 'exclude',
-        }}
-      />
-
-      {/* Content */}
-      <div className="flex h-full flex-col justify-between p-4">
-        {/* Year tag */}
-        <span
-          className="w-fit rounded-full border border-white/20 px-2.5 py-0.5 text-white/70"
-          style={{ fontSize: 14 }}
+    <>
+      <nav className="relative z-50 flex items-center justify-center gap-2 px-4 pt-4 sm:gap-3 sm:px-8 sm:pt-6">
+        <Link
+          to="/"
+          aria-label="MediCo LatAm"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm transition-transform duration-200 hover:scale-105 sm:h-11 sm:w-11"
+          style={{ backgroundColor: '#EDEDED' }}
         >
-          [ 2025 ]
-        </span>
+          <Logo />
+        </Link>
 
-        {/* Headline */}
-        <div>
-          <p
-            className="mb-1 leading-tight text-white"
-            style={{ fontSize: 18, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          >
-            Diseñado por{' '}
-            <em style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic' }}>
-              Especialistas
-            </em>
-          </p>
-          <p className="text-white/50" style={{ fontSize: 11 }}>
-            Plataforma clínica de próxima generación para Latinoamérica.
-          </p>
+        {/* Desktop pill */}
+        <div
+          className="hidden items-center gap-4 rounded-xl px-4 py-2.5 shadow-sm sm:gap-10 sm:px-8 sm:py-3 lg:flex"
+          style={{ backgroundColor: '#EDEDED' }}
+        >
+          {NAV_LINKS.map(link => (
+            <Link
+              key={link.label}
+              to={link.to}
+              className="text-[12px] font-medium text-gray-700 transition-colors duration-200 hover:text-blue-600 sm:text-[14px]"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
-      </div>
-    </div>
+
+        {/* Mobile hamburger */}
+        <button
+          type="button"
+          onClick={() => setMobileOpen(v => !v)}
+          className="flex h-10 w-10 items-center justify-center rounded-full shadow-sm lg:hidden"
+          style={{ backgroundColor: '#EDEDED' }}
+          aria-label="Menú"
+        >
+          {mobileOpen ? <X className="h-5 w-5 text-gray-700" /> : <Menu className="h-5 w-5 text-gray-700" />}
+        </button>
+      </nav>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 flex flex-col bg-white/95 backdrop-blur-xl lg:hidden">
+          <div className="flex h-16 items-center justify-between px-6">
+            <span className="text-base font-semibold text-gray-900">MediCo LatAm</span>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="text-gray-500 hover:text-gray-900"
+              aria-label="Cerrar"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            {NAV_LINKS.map(link => (
+              <Link
+                key={link.label}
+                to={link.to}
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-xl px-3 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <hr className="my-4 border-gray-100" />
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-blue-500">Soluciones</p>
+            {[...SOLUCIONES_COL1, ...SOLUCIONES_COL2].map(s => (
+              <Link
+                key={s.href}
+                to={s.href}
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                {s.icon} {s.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   HERO SECTION — CodeNest style, medical content
+   HERO SECTION — new light design, video bg, animated UI mockup
 ═══════════════════════════════════════════════════════════════════════════════ */
 function Hero() {
   return (
-    <section
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-24 pb-16"
-      style={{ background: '#070b0a' }}
-    >
-      {/* ── HLS Video ── */}
-      <HeroVideo />
-
-      {/* ── Dark gradient left ── */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-[1]"
-        style={{
-          background: 'linear-gradient(to right, #070b0a 0%, transparent 60%)',
-        }}
+    <section className="relative min-h-screen overflow-hidden bg-[#f0f0ee] text-gray-900">
+      {/* Video background */}
+      <video
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_215831_c6a8989c-d716-4d8d-8745-e972a2eec711.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
       />
 
-      {/* ── Bottom-up gradient for readability ── */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-64"
-        style={{
-          background: 'linear-gradient(to top, #070b0a 0%, transparent 100%)',
-        }}
-      />
+      {/* Overlays */}
+      <div className="absolute inset-0 bg-white/75 backdrop-blur-[2px]" />
+      <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-blue-200/40 blur-3xl" />
+      <div className="absolute bottom-0 right-0 h-[32rem] w-[32rem] rounded-full bg-cyan-200/30 blur-3xl" />
 
-      {/* ── Vertical grid lines (desktop) ── */}
-      {[25, 50, 75].map(pct => (
-        <div
-          key={pct}
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 z-[1] hidden w-px lg:block"
-          style={{ left: `${pct}%`, background: 'rgba(255,255,255,0.10)' }}
-        />
-      ))}
+      {/* Content */}
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <Navbar />
 
-      {/* ── Central cyan/green ellipse glow ── */}
-      <svg
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 z-[2] -translate-x-1/2"
-        width="900"
-        height="220"
-        viewBox="0 0 900 220"
-        fill="none"
-      >
-        <defs>
-          <filter id="heroGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="25" />
-          </filter>
-        </defs>
-        <ellipse cx="450" cy="60" rx="380" ry="60" fill="#0a2e23" filter="url(#heroGlow)" opacity="0.9" />
-        <ellipse cx="450" cy="60" rx="240" ry="40" fill="#0d3d2e" filter="url(#heroGlow)" opacity="0.7" />
-      </svg>
+        <div className="grid flex-1 items-center gap-10 px-6 pb-10 pt-10 sm:px-12 md:px-20 lg:grid-cols-[0.95fr_1.05fr] lg:px-28 lg:pb-20">
+          {/* ── Left col ── */}
+          <div className="max-w-xl">
+            <Link
+              to="/funcionalidades/tecnologia/ia-asistente"
+              className="group mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/70 px-4 py-2 text-[11.5px] font-medium text-blue-600 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-blue-300 hover:bg-white"
+            >
+              <ScanLine className="h-3.5 w-3.5" />
+              IA médica para clínicas modernas
+              <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+            </Link>
 
-      {/* ── Liquid Glass Card ── */}
-      <div className="relative z-10 flex justify-center">
-        <LiquidGlassCard />
+            <h1 className="animate-fade-up text-[2.35rem] font-medium leading-[1.04] tracking-tight text-gray-950 sm:text-[3.4rem] lg:text-[4.2rem]">
+              Software médico inteligente para clínicas que quieren trabajar mejor.
+            </h1>
+
+            <p className="mt-5 max-w-md animate-fade-up-delay text-[15px] leading-6 text-gray-500 sm:text-[16px]">
+              Centraliza pacientes, historiales, diagnósticos y procesos clínicos en una plataforma rápida, simple y moderna.
+            </p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/login"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-6 py-3 text-[13px] font-medium text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-blue-500/30"
+              >
+                Solicitar demo
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </Link>
+
+              <Link
+                to="/productos"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white/60 px-6 py-3 text-[13px] font-medium text-gray-700 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-gray-950"
+              >
+                Ver plataforma
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+
+            {/* Mini feature cards */}
+            <div className="mt-8 grid max-w-lg grid-cols-1 gap-3 sm:grid-cols-3">
+              {[
+                { icon: FileText,   title: 'Historial clínico' },
+                { icon: UserRound,  title: 'Gestión de pacientes' },
+                { icon: Activity,   title: 'Diagnóstico asistido' },
+              ].map(item => (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-white/70 bg-white/55 p-4 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:bg-white"
+                >
+                  <item.icon className="mb-3 h-4 w-4 text-blue-500" />
+                  <p className="text-[12px] font-medium text-gray-700">{item.title}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Right col — animated UI ── */}
+          <div className="relative mx-auto flex h-[430px] w-full max-w-[620px] items-center justify-center sm:h-[540px]">
+            <div className="absolute h-[360px] w-[360px] rounded-full bg-blue-100/70 blur-3xl sm:h-[460px] sm:w-[460px]" />
+
+            {/* Robot arm */}
+            <div className="robot-arm absolute left-2 top-36 hidden h-28 w-64 origin-left rounded-full bg-white/80 shadow-xl shadow-blue-950/5 ring-1 ring-gray-200/80 backdrop-blur-md md:block">
+              <div className="absolute left-5 top-1/2 h-12 w-12 -translate-y-1/2 rounded-full border border-gray-200 bg-white shadow-inner" />
+              <div className="absolute right-8 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full border border-gray-200 bg-white shadow-md">
+                <div className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-100" />
+              </div>
+              <div className="absolute -right-8 top-1/2 h-8 w-16 -translate-y-1/2 rounded-full bg-white shadow-md ring-1 ring-gray-200" />
+            </div>
+
+            {/* Phone mockup */}
+            <div className="phone-float relative z-10 h-[310px] w-[158px] rounded-[2.2rem] border border-gray-200 bg-gray-950 p-2 shadow-2xl shadow-blue-950/20 sm:h-[360px] sm:w-[184px]">
+              <div className="h-full w-full overflow-hidden rounded-[1.7rem] bg-gradient-to-b from-gray-50 to-blue-50">
+                <div className="mx-auto mt-3 h-5 w-20 rounded-full bg-gray-950" />
+                <div className="px-4 pt-8">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-medium text-gray-400">MediCo Scan</p>
+                      <p className="text-[13px] font-semibold text-gray-900">Paciente activo</p>
+                    </div>
+                    <Smartphone className="h-4 w-4 text-blue-500" />
+                  </div>
+                  <div className="rounded-2xl border border-blue-100 bg-white/80 p-3 shadow-sm">
+                    <div className="mb-3 flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-blue-500" />
+                      <p className="text-[10px] font-medium text-gray-500">Escaneo en progreso</p>
+                    </div>
+                    <div className="h-28 rounded-xl bg-gradient-to-br from-blue-50 to-white p-3">
+                      <svg viewBox="0 0 120 120" className="h-full w-full">
+                        <path d="M60 14 C51 28 49 48 52 76" stroke="#60a5fa" strokeWidth="3" fill="none" opacity="0.9" />
+                        <path d="M60 14 C69 28 71 48 68 76" stroke="#60a5fa" strokeWidth="3" fill="none" opacity="0.9" />
+                        {[24, 34, 44, 54, 64].map(y => (
+                          <g key={y}>
+                            <path d={`M58 ${y} C42 ${y+1} 32 ${y+10} 24 ${y+20}`} stroke="#93c5fd" strokeWidth="2" fill="none" />
+                            <path d={`M62 ${y} C78 ${y+1} 88 ${y+10} 96 ${y+20}`} stroke="#93c5fd" strokeWidth="2" fill="none" />
+                          </g>
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Hologram card */}
+            <div className="hologram absolute right-0 top-10 z-20 w-[270px] rounded-[2rem] border border-blue-200/80 bg-white/45 p-5 shadow-2xl shadow-blue-500/10 backdrop-blur-xl sm:right-2 sm:top-12 sm:w-[340px]">
+              <div className="scan-line" />
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-medium text-blue-500">Radiografía IA</p>
+                  <p className="text-[15px] font-semibold text-gray-900">Análisis clínico</p>
+                </div>
+                <div className="rounded-full bg-blue-500/10 p-2">
+                  <ShieldCheck className="h-4 w-4 text-blue-500" />
+                </div>
+              </div>
+              <div className="relative h-48 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/90 via-white/80 to-cyan-50/80 sm:h-64">
+                <svg viewBox="0 0 240 240" className="h-full w-full p-6">
+                  <path d="M120 22 C104 48 100 88 105 162" stroke="#3b82f6" strokeWidth="5" fill="none" opacity="0.75" />
+                  <path d="M120 22 C136 48 140 88 135 162" stroke="#3b82f6" strokeWidth="5" fill="none" opacity="0.75" />
+                  {[44, 60, 76, 92, 108, 124, 140].map((y, index) => (
+                    <g key={y} opacity={1 - index * 0.06}>
+                      <path d={`M116 ${y} C83 ${y+1} 60 ${y+18} 42 ${y+38}`} stroke="#60a5fa" strokeWidth="3" fill="none" />
+                      <path d={`M124 ${y} C157 ${y+1} 180 ${y+18} 198 ${y+38}`} stroke="#60a5fa" strokeWidth="3" fill="none" />
+                    </g>
+                  ))}
+                  <circle cx="120" cy="175" r="20" stroke="#93c5fd" strokeWidth="4" fill="none" opacity="0.8" />
+                </svg>
+                <div className="absolute inset-x-8 bottom-5 rounded-full bg-white/70 px-4 py-2 text-center text-[11px] font-medium text-blue-600 shadow-sm backdrop-blur-md">
+                  Scan activo · precisión asistida
+                </div>
+              </div>
+            </div>
+
+            {/* Data cards */}
+            <div className="data-card card-one absolute left-0 top-10 z-30 rounded-2xl border border-white/70 bg-white/70 px-4 py-3 shadow-xl shadow-blue-950/5 backdrop-blur-xl">
+              <p className="text-[10px] font-medium text-gray-400">Paciente #0248</p>
+              <p className="text-[13px] font-semibold text-gray-900">Historial listo</p>
+            </div>
+            <div className="data-card card-two absolute bottom-16 right-5 z-30 rounded-2xl border border-white/70 bg-white/70 px-4 py-3 shadow-xl shadow-blue-950/5 backdrop-blur-xl">
+              <p className="text-[10px] font-medium text-gray-400">Riesgo clínico</p>
+              <p className="text-[13px] font-semibold text-blue-600">Bajo</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* ── Eyebrow ── */}
-      <p
-        className="relative z-10 mb-4 font-bold uppercase"
-        style={{
-          fontFamily: "'Plus Jakarta Sans', sans-serif",
-          fontSize: 11,
-          letterSpacing: '0.18em',
-          color: '#5ed29c',
-        }}
-      >
-        RIS/PACS Nativo · IA Clínica · LatAm First
-      </p>
-
-      {/* ── Main headline ── */}
-      <h1
-        className="relative z-10 mb-6 max-w-4xl text-center font-extrabold uppercase leading-none tracking-tight"
-        style={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: 'clamp(40px, 7vw, 72px)',
-          color: '#ffffff',
-        }}
-      >
-        DIGITALIZA TU CLÍNICA<span style={{ color: '#5ed29c' }}>.</span>
-      </h1>
-
-      {/* ── Sub-headline ── */}
-      <p
-        className="relative z-10 mb-10 max-w-[512px] text-center leading-relaxed"
-        style={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: 14,
-          color: 'rgba(255,255,255,0.70)',
-        }}
-      >
-        Gestiona estudios DICOM, pacientes y cobros multidivisa desde un solo sistema
-        diseñado para clínicas y hospitales de Latinoamérica.
-      </p>
-
-      {/* ── CTA ── */}
-      <Link
-        to="/login"
-        className="relative z-10 inline-flex items-center gap-2.5 rounded-full px-8 py-3 font-bold uppercase
-                   transition hover:brightness-110 hover:scale-[1.03] active:scale-[0.97]"
-        style={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: 14,
-          background: '#5ed29c',
-          color: '#070b0a',
-          letterSpacing: '0.08em',
-        }}
-      >
-        Comenzar <ArrowRight className="h-4 w-4" />
-      </Link>
-
-      {/* ── Scroll indicator ── */}
-      <div
-        className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 opacity-40"
-        aria-hidden
-      >
-        <div className="h-8 w-px" style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.5))' }} />
-        <span className="text-[10px] uppercase tracking-[0.2em] text-white/50" style={{ fontFamily: "'Inter', sans-serif" }}>
-          scroll
-        </span>
-      </div>
+      {/* ── Inline animations ── */}
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes floatPhone {
+          0%,100% { transform: translateY(0) rotate(-2deg); }
+          50%      { transform: translateY(-14px) rotate(1deg); }
+        }
+        @keyframes hologramPulse {
+          0%,100% { opacity: 0.92; transform: translateY(0) scale(1); }
+          50%     { opacity: 1; transform: translateY(-5px) scale(1.015); }
+        }
+        @keyframes scan {
+          0%   { transform: translateY(-30px); opacity: 0; }
+          15%  { opacity: 1; }
+          85%  { opacity: 1; }
+          100% { transform: translateY(300px); opacity: 0; }
+        }
+        @keyframes robotIdle {
+          0%,100% { transform: rotate(-4deg); }
+          50%     { transform: rotate(3deg); }
+        }
+        @keyframes cardFloat {
+          0%,100% { transform: translateY(0); }
+          50%     { transform: translateY(-8px); }
+        }
+        .animate-fade-up       { animation: fadeUp 700ms ease-out both; }
+        .animate-fade-up-delay { animation: fadeUp 800ms ease-out 120ms both; }
+        .phone-float  { animation: floatPhone 6s ease-in-out infinite; }
+        .hologram     { animation: hologramPulse 5s ease-in-out infinite; }
+        .robot-arm    { animation: robotIdle 7s ease-in-out infinite; }
+        .data-card    { animation: cardFloat 5s ease-in-out infinite; }
+        .card-two     { animation-delay: 1.2s; }
+        .scan-line {
+          position: absolute;
+          left: 1.25rem; right: 1.25rem; top: 5.8rem;
+          height: 2px; border-radius: 9999px;
+          background: linear-gradient(90deg, transparent, rgba(59,130,246,0.85), transparent);
+          box-shadow: 0 0 24px rgba(59,130,246,0.55);
+          animation: scan 3.2s ease-in-out infinite;
+          z-index: 30; pointer-events: none;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-fade-up,.animate-fade-up-delay,.phone-float,
+          .hologram,.robot-arm,.data-card,.scan-line { animation: none !important; }
+        }
+      `}</style>
     </section>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   NAVBAR — White minimalist, sticky, hamburger mobile
-   Keeps existing medical mega-dropdowns intact
-═══════════════════════════════════════════════════════════════════════════════ */
-function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled]     = useState(false);
-
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
-  }, []);
-
-  return (
-    <>
-      <header
-        className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? 'bg-white/90 shadow-sm'
-            : 'bg-transparent'
-        }`}
-        style={{ backdropFilter: scrolled ? 'blur(20px)' : 'none' }}
-      >
-        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-5 lg:px-8">
-
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center gap-2.5"
-            style={{ fontFamily: "'Inter', sans-serif" }}
-          >
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-xl"
-              style={{ background: scrolled ? '#070b0a' : 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
-            >
-              <Stethoscope className="h-5 w-5 text-white" />
-            </div>
-            <span
-              className="text-lg font-bold tracking-tight"
-              style={{ color: scrolled ? '#070b0a' : '#ffffff' }}
-            >
-              MediCo<span style={{ color: '#5ed29c' }}> LatAm</span>
-            </span>
-          </Link>
-
-          {/* Desktop Nav */}
-          <nav className="hidden items-center gap-1 lg:flex">
-            <SolucionesDropdown scrolled={scrolled} />
-            <FuncionalidadesDropdown scrolled={scrolled} />
-            {['Productos', 'Nosotros'].map(label => (
-              <Link
-                key={label}
-                to={`/${label.toLowerCase()}`}
-                className="rounded-lg px-4 py-2 text-sm font-medium transition"
-                style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 16,
-                  color: scrolled ? '#555' : 'rgba(255,255,255,0.75)',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#5ed29c'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = scrolled ? '#555' : 'rgba(255,255,255,0.75)'; }}
-              >
-                {label.toUpperCase()}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Desktop CTA */}
-          <div className="hidden lg:flex">
-            <Link
-              to="/login"
-              className="rounded-full border px-6 py-2 text-sm font-semibold transition hover:brightness-110"
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                borderColor: scrolled ? '#070b0a' : 'rgba(255,255,255,0.25)',
-                color: scrolled ? '#070b0a' : '#ffffff',
-                background: 'transparent',
-              }}
-            >
-              Iniciar Sesión
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            onClick={() => setMobileOpen(v => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg lg:hidden"
-            style={{ color: scrolled ? '#070b0a' : '#ffffff' }}
-            aria-label="Menú"
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </header>
-
-      {/* ── Mobile full-screen overlay ── */}
-      <div
-        className={`fixed inset-0 z-40 flex flex-col transition-all duration-300 lg:hidden ${
-          mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        }`}
-        style={{ background: 'rgba(7,11,10,0.97)', backdropFilter: 'blur(20px)' }}
-      >
-        <div className="flex h-[68px] items-center justify-between px-5">
-          <span
-            className="text-lg font-bold text-white tracking-tight"
-            style={{ fontFamily: "'Inter', sans-serif" }}
-          >
-            MediCo<span style={{ color: '#5ed29c' }}> LatAm</span>
-          </span>
-          <button
-            type="button"
-            onClick={() => setMobileOpen(false)}
-            className="text-white/70 hover:text-white"
-            aria-label="Cerrar"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#5ed29c]">Soluciones</p>
-          {[...SOLUCIONES_COL1, ...SOLUCIONES_COL2].map(s => (
-            <Link
-              key={s.href}
-              to={s.href}
-              onClick={() => setMobileOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm text-white/70 hover:text-white"
-            >
-              {s.icon} {s.label}
-            </Link>
-          ))}
-          <p className="mb-2 mt-5 text-[10px] font-bold uppercase tracking-widest text-[#5ed29c]">Funcionalidades</p>
-          {FUNCIONALIDADES_BLOCKS.slice(0, 2).flatMap(b => b.items).map(f => (
-            <Link
-              key={f.href}
-              to={f.href}
-              onClick={() => setMobileOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm text-white/70 hover:text-white"
-            >
-              {f.label}
-            </Link>
-          ))}
-          <div className="mt-8">
-            <Link
-              to="/login"
-              onClick={() => setMobileOpen(false)}
-              className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 font-bold uppercase"
-              style={{ background: '#5ed29c', color: '#070b0a', fontSize: 14, fontFamily: "'Inter', sans-serif" }}
-            >
-              Comenzar <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-/* ── Dropdown base wrapper ───────────────────────────────────────────────────── */
-function DropdownWrapper({ label, scrolled, children }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const close = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition"
-        style={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: 16,
-          color: scrolled ? '#555' : 'rgba(255,255,255,0.75)',
-        }}
-      >
-        {label.toUpperCase()}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-      <div
-        className={`absolute left-1/2 top-full z-50 mt-3 -translate-x-1/2 transition-all duration-200 ${
-          open ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
-        }`}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function SolucionesDropdown({ scrolled }) {
-  return (
-    <DropdownWrapper label="Soluciones" scrolled={scrolled}>
-      <div className="w-[520px] rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-xl backdrop-blur-2xl">
-        <p className="mb-3 text-[10px] font-bold uppercase tracking-widest" style={{ color: '#5ed29c' }}>
-          11 Especialidades Clínicas
-        </p>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-          <div className="space-y-0.5">
-            {SOLUCIONES_COL1.map(s => (
-              <Link key={s.href} to={s.href}
-                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
-                <span>{s.icon}</span>{s.label}
-              </Link>
-            ))}
-          </div>
-          <div className="space-y-0.5">
-            {SOLUCIONES_COL2.map(s => (
-              <Link key={s.href} to={s.href}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition hover:bg-slate-50 hover:text-slate-900 ${
-                  s.highlight ? 'border border-[#5ed29c]/30 bg-[#5ed29c]/5 font-semibold text-[#3ab87a]' : 'text-slate-600'
-                }`}>
-                <span>{s.icon}</span>{s.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-    </DropdownWrapper>
-  );
-}
-
-function FuncionalidadesDropdown({ scrolled }) {
-  return (
-    <DropdownWrapper label="Funcionalidades" scrolled={scrolled}>
-      <div className="w-[600px] rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-xl backdrop-blur-2xl">
-        <div className="grid grid-cols-2 gap-6">
-          {FUNCIONALIDADES_BLOCKS.map(block => (
-            <div key={block.title}>
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: '#5ed29c' }}>
-                {block.title}
-              </p>
-              <div className="space-y-0.5">
-                {block.items.map(item => (
-                  <Link key={item.href} to={item.href}
-                    className="block rounded-lg px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </DropdownWrapper>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════
-   BROWSER MOCKUP (unchanged, cleaned)
+   BROWSER MOCKUP (unchanged)
 ═══════════════════════════════════════════════════════════════════════════════ */
 function BrowserMockup() {
   return (
@@ -742,9 +597,9 @@ function TabVisual({ tabId }) {
         <span className="text-sm font-semibold text-slate-900">Dashboard Financiero</span>
       </div>
       {[
-        { label: 'Ingresos del mes',    val: '$124,500 MXN', pct: 78 },
-        { label: 'Cuentas por cobrar',  val: '$38,200 MXN',  pct: 45 },
-        { label: 'Facturas emitidas',   val: '142',           pct: 90 },
+        { label: 'Ingresos del mes',   val: '$124,500 MXN', pct: 78 },
+        { label: 'Cuentas por cobrar', val: '$38,200 MXN',  pct: 45 },
+        { label: 'Facturas emitidas',  val: '142',           pct: 90 },
       ].map(r => (
         <div key={r.label} className="rounded-xl border border-slate-200 bg-white p-3">
           <div className="mb-1.5 flex items-center justify-between">
@@ -893,11 +748,9 @@ function CTASection() {
       className="relative overflow-hidden py-28 px-4 sm:px-8"
       style={{ background: '#070b0a' }}
     >
-      {/* glow */}
       <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[180px]"
            style={{ background: 'rgba(94,210,156,0.06)' }} />
       <div className="relative z-10 mx-auto max-w-4xl text-center">
-        {/* vertical lines */}
         {[25, 75].map(pct => (
           <div key={pct} aria-hidden className="pointer-events-none absolute inset-y-0 hidden w-px lg:block" style={{ left: `${pct}%`, background: 'rgba(255,255,255,0.06)' }} />
         ))}
@@ -943,7 +796,6 @@ function Footer() {
 export default function LandingPage() {
   return (
     <div className="w-full min-h-screen bg-slate-50 text-slate-900" style={{ fontFamily: "'Inter', Geist, system-ui, sans-serif" }}>
-      <Navbar />
       <Hero />
 
       {/* ContainerScroll product showcase */}
