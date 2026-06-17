@@ -224,22 +224,10 @@ function Navbar() {
 ═══════════════════════════════════════════════════════════════════════════════ */
 function Hero() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#f0f0ee] text-gray-900">
-      {/* Video background */}
-      <video
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
-        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_215831_c6a8989c-d716-4d8d-8745-e972a2eec711.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-      />
-
-      {/* Overlays */}
-      <div className="absolute inset-0 bg-white/75 backdrop-blur-[2px]" />
-      <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-blue-200/40 blur-3xl" />
-      <div className="absolute bottom-0 right-0 h-[32rem] w-[32rem] rounded-full bg-cyan-200/30 blur-3xl" />
+    <section className="relative min-h-screen overflow-hidden bg-white text-gray-900">
+      {/* Soft ambient glows */}
+      <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
+      <div className="absolute bottom-0 right-0 h-[32rem] w-[32rem] rounded-full bg-cyan-200/20 blur-3xl" />
 
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col">
@@ -292,7 +280,7 @@ function Hero() {
               ].map(item => (
                 <div
                   key={item.title}
-                  className="rounded-2xl border border-white/70 bg-white/55 p-4 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:bg-white"
+                  className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-100 hover:shadow-md"
                 >
                   <item.icon className="mb-3 h-4 w-4 text-blue-500" />
                   <p className="text-[12px] font-medium text-gray-700">{item.title}</p>
