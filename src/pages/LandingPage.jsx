@@ -301,91 +301,63 @@ function Hero() {
             </div>
           </div>
 
-          {/* ── Right col — animated UI ── */}
-          <div className="relative mx-auto flex h-[430px] w-full max-w-[620px] items-center justify-center sm:h-[540px]">
-            <div className="absolute h-[360px] w-[360px] rounded-full bg-blue-100/70 blur-3xl sm:h-[460px] sm:w-[460px]" />
+          {/* ── Right col — Monitor mockup with video ── */}
+          <div className="relative mx-auto w-full max-w-[640px]">
+            {/* Glow behind monitor */}
+            <div aria-hidden className="absolute left-1/2 top-1/2 h-[320px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-300/20 blur-[80px]" />
 
-            {/* Robot arm */}
-            <div className="robot-arm absolute left-2 top-36 hidden h-28 w-64 origin-left rounded-full bg-white/80 shadow-xl shadow-blue-950/5 ring-1 ring-gray-200/80 backdrop-blur-md md:block">
-              <div className="absolute left-5 top-1/2 h-12 w-12 -translate-y-1/2 rounded-full border border-gray-200 bg-white shadow-inner" />
-              <div className="absolute right-8 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full border border-gray-200 bg-white shadow-md">
-                <div className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-100" />
-              </div>
-              <div className="absolute -right-8 top-1/2 h-8 w-16 -translate-y-1/2 rounded-full bg-white shadow-md ring-1 ring-gray-200" />
-            </div>
-
-            {/* Phone mockup */}
-            <div className="phone-float relative z-10 h-[310px] w-[158px] rounded-[2.2rem] border border-gray-200 bg-gray-950 p-2 shadow-2xl shadow-blue-950/20 sm:h-[360px] sm:w-[184px]">
-              <div className="h-full w-full overflow-hidden rounded-[1.7rem] bg-gradient-to-b from-gray-50 to-blue-50">
-                <div className="mx-auto mt-3 h-5 w-20 rounded-full bg-gray-950" />
-                <div className="px-4 pt-8">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-medium text-gray-400">MediCo Scan</p>
-                      <p className="text-[13px] font-semibold text-gray-900">Paciente activo</p>
-                    </div>
-                    <Smartphone className="h-4 w-4 text-blue-500" />
-                  </div>
-                  <div className="rounded-2xl border border-blue-100 bg-white/80 p-3 shadow-sm">
-                    <div className="mb-3 flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-blue-500" />
-                      <p className="text-[10px] font-medium text-gray-500">Escaneo en progreso</p>
-                    </div>
-                    <div className="h-28 rounded-xl bg-gradient-to-br from-blue-50 to-white p-3">
-                      <svg viewBox="0 0 120 120" className="h-full w-full">
-                        <path d="M60 14 C51 28 49 48 52 76" stroke="#60a5fa" strokeWidth="3" fill="none" opacity="0.9" />
-                        <path d="M60 14 C69 28 71 48 68 76" stroke="#60a5fa" strokeWidth="3" fill="none" opacity="0.9" />
-                        {[24, 34, 44, 54, 64].map(y => (
-                          <g key={y}>
-                            <path d={`M58 ${y} C42 ${y+1} 32 ${y+10} 24 ${y+20}`} stroke="#93c5fd" strokeWidth="2" fill="none" />
-                            <path d={`M62 ${y} C78 ${y+1} 88 ${y+10} 96 ${y+20}`} stroke="#93c5fd" strokeWidth="2" fill="none" />
-                          </g>
-                        ))}
-                      </svg>
-                    </div>
+            {/* Monitor frame */}
+            <div className="relative z-10 monitor-float">
+              {/* Screen bezel */}
+              <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-gray-950 shadow-2xl shadow-blue-950/20 ring-1 ring-black/5">
+                {/* Titlebar */}
+                <div className="flex h-8 items-center gap-1.5 border-b border-white/10 bg-gray-900 px-3">
+                  <div className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
+                  <div className="mx-auto flex h-5 w-52 items-center gap-1.5 rounded bg-gray-800 px-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-400/60" />
+                    <span className="text-[9px] text-gray-400">Iris RIS/PACS · iris.clinica.com</span>
                   </div>
                 </div>
+                {/* Video inside screen */}
+                <div className="relative aspect-video w-full bg-black">
+                  <video
+                    src="https://storage.googleapis.com/runable-templates/cli-uploads%2FwZH4PKqu2ntmfWndP7ZP8Yn8qCTNw8e5%2FTPdGSAoBz7S3W0kytmOGI%2Fgemini_generated_video_9140f014_WqBg0n.mp4"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+
+              {/* Monitor stand */}
+              <div className="mx-auto h-4 w-20 bg-gradient-to-b from-gray-300 to-gray-200" />
+              <div className="mx-auto h-2 w-36 rounded-full bg-gray-200 shadow-sm" />
+            </div>
+
+            {/* Floating badge — top right */}
+            <div className="data-card absolute -right-4 -top-4 z-20 flex items-center gap-2 rounded-2xl border border-blue-100 bg-white px-4 py-2.5 shadow-xl shadow-blue-500/10 sm:-right-6 sm:-top-5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500/10">
+                <Brain className="h-4 w-4 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-[10px] font-medium text-gray-400">Iris IA activa</p>
+                <p className="text-[12px] font-semibold text-gray-900">Informe generado</p>
               </div>
             </div>
 
-            {/* Hologram card */}
-            <div className="hologram absolute right-0 top-10 z-20 w-[270px] rounded-[2rem] border border-blue-200/80 bg-white/45 p-5 shadow-2xl shadow-blue-500/10 backdrop-blur-xl sm:right-2 sm:top-12 sm:w-[340px]">
-              <div className="scan-line" />
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <p className="text-[11px] font-medium text-blue-500">Radiografía IA</p>
-                  <p className="text-[15px] font-semibold text-gray-900">Análisis clínico</p>
-                </div>
-                <div className="rounded-full bg-blue-500/10 p-2">
-                  <ShieldCheck className="h-4 w-4 text-blue-500" />
-                </div>
+            {/* Floating badge — bottom left */}
+            <div className="data-card card-two absolute -bottom-4 -left-4 z-20 flex items-center gap-2 rounded-2xl border border-blue-100 bg-white px-4 py-2.5 shadow-xl shadow-blue-500/10 sm:-bottom-5 sm:-left-6">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-green-500/10">
+                <ShieldCheck className="h-4 w-4 text-green-500" />
               </div>
-              <div className="relative h-48 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/90 via-white/80 to-cyan-50/80 sm:h-64">
-                <svg viewBox="0 0 240 240" className="h-full w-full p-6">
-                  <path d="M120 22 C104 48 100 88 105 162" stroke="#3b82f6" strokeWidth="5" fill="none" opacity="0.75" />
-                  <path d="M120 22 C136 48 140 88 135 162" stroke="#3b82f6" strokeWidth="5" fill="none" opacity="0.75" />
-                  {[44, 60, 76, 92, 108, 124, 140].map((y, index) => (
-                    <g key={y} opacity={1 - index * 0.06}>
-                      <path d={`M116 ${y} C83 ${y+1} 60 ${y+18} 42 ${y+38}`} stroke="#60a5fa" strokeWidth="3" fill="none" />
-                      <path d={`M124 ${y} C157 ${y+1} 180 ${y+18} 198 ${y+38}`} stroke="#60a5fa" strokeWidth="3" fill="none" />
-                    </g>
-                  ))}
-                  <circle cx="120" cy="175" r="20" stroke="#93c5fd" strokeWidth="4" fill="none" opacity="0.8" />
-                </svg>
-                <div className="absolute inset-x-8 bottom-5 rounded-full bg-white/70 px-4 py-2 text-center text-[11px] font-medium text-blue-600 shadow-sm backdrop-blur-md">
-                  Scan activo · precisión asistida
-                </div>
+              <div>
+                <p className="text-[10px] font-medium text-gray-400">Cumplimiento</p>
+                <p className="text-[12px] font-semibold text-gray-900">HIPAA · LGPD</p>
               </div>
-            </div>
-
-            {/* Data cards */}
-            <div className="data-card card-one absolute left-0 top-10 z-30 rounded-2xl border border-white/70 bg-white/70 px-4 py-3 shadow-xl shadow-blue-950/5 backdrop-blur-xl">
-              <p className="text-[10px] font-medium text-gray-400">Paciente #0248</p>
-              <p className="text-[13px] font-semibold text-gray-900">Historial listo</p>
-            </div>
-            <div className="data-card card-two absolute bottom-16 right-5 z-30 rounded-2xl border border-white/70 bg-white/70 px-4 py-3 shadow-xl shadow-blue-950/5 backdrop-blur-xl">
-              <p className="text-[10px] font-medium text-gray-400">Riesgo clínico</p>
-              <p className="text-[13px] font-semibold text-blue-600">Bajo</p>
             </div>
           </div>
         </div>
@@ -421,23 +393,11 @@ function Hero() {
         }
         .animate-fade-up       { animation: fadeUp 700ms ease-out both; }
         .animate-fade-up-delay { animation: fadeUp 800ms ease-out 120ms both; }
-        .phone-float  { animation: floatPhone 6s ease-in-out infinite; }
-        .hologram     { animation: hologramPulse 5s ease-in-out infinite; }
-        .robot-arm    { animation: robotIdle 7s ease-in-out infinite; }
-        .data-card    { animation: cardFloat 5s ease-in-out infinite; }
-        .card-two     { animation-delay: 1.2s; }
-        .scan-line {
-          position: absolute;
-          left: 1.25rem; right: 1.25rem; top: 5.8rem;
-          height: 2px; border-radius: 9999px;
-          background: linear-gradient(90deg, transparent, rgba(59,130,246,0.85), transparent);
-          box-shadow: 0 0 24px rgba(59,130,246,0.55);
-          animation: scan 3.2s ease-in-out infinite;
-          z-index: 30; pointer-events: none;
-        }
+        .monitor-float { animation: cardFloat 7s ease-in-out infinite; }
+        .data-card     { animation: cardFloat 5s ease-in-out infinite; }
+        .card-two      { animation-delay: 1.4s; }
         @media (prefers-reduced-motion: reduce) {
-          .animate-fade-up,.animate-fade-up-delay,.phone-float,
-          .hologram,.robot-arm,.data-card,.scan-line { animation: none !important; }
+          .animate-fade-up,.animate-fade-up-delay,.monitor-float,.data-card { animation: none !important; }
         }
       `}</style>
     </section>
