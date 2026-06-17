@@ -224,21 +224,30 @@ function Navbar() {
 ═══════════════════════════════════════════════════════════════════════════════ */
 function Hero() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-white text-gray-900">
-      {/* Soft ambient glows */}
-      <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
-      <div className="absolute bottom-0 right-0 h-[32rem] w-[32rem] rounded-full bg-cyan-200/20 blur-3xl" />
+    <section className="relative min-h-screen overflow-hidden bg-black text-white">
+      {/* Fullscreen video background */}
+      <video
+        src="https://storage.googleapis.com/runable-templates/cli-uploads%2FwZH4PKqu2ntmfWndP7ZP8Yn8qCTNw8e5%2Ft60WCVj7eikc1vsIAFmni%2Fgemini_generated_video_9140f014_JrQnqJ.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+
+      {/* Subtle gradient overlay for button legibility */}
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
 
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar />
 
-        <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6 pb-16 pt-6 sm:px-12 md:px-20 lg:px-28">
+        <div className="flex flex-1 flex-col items-center justify-end gap-8 px-6 pb-20 sm:px-12 md:px-20 lg:px-28">
           {/* ── CTA buttons ── */}
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               to="/login"
-              className="group inline-flex items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-7 py-3.5 text-[14px] font-medium text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-blue-500/30"
+              className="group inline-flex items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-7 py-3.5 text-[14px] font-medium text-white shadow-lg shadow-blue-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-600"
             >
               Solicitar demo
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -246,71 +255,11 @@ function Hero() {
 
             <Link
               to="/productos"
-              className="group inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-7 py-3.5 text-[14px] font-medium text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:text-gray-950"
+              className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3.5 text-[14px] font-medium text-white shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20"
             >
               Ver plataforma
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
-          </div>
-
-          {/* ── Monitor mockup with video ── */}
-          <div className="relative mx-auto w-full max-w-[860px]">
-            {/* Glow behind monitor */}
-            <div aria-hidden className="absolute left-1/2 top-1/2 h-[320px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-300/20 blur-[80px]" />
-
-            {/* Monitor frame */}
-            <div className="relative z-10 monitor-float">
-              {/* Screen bezel */}
-              <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-gray-950 shadow-2xl shadow-blue-950/20 ring-1 ring-black/5">
-                {/* Titlebar */}
-                <div className="flex h-8 items-center gap-1.5 border-b border-white/10 bg-gray-900 px-3">
-                  <div className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
-                  <div className="mx-auto flex h-5 w-52 items-center gap-1.5 rounded bg-gray-800 px-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-400/60" />
-                    <span className="text-[9px] text-gray-400">Iris RIS/PACS · iris.clinica.com</span>
-                  </div>
-                </div>
-                {/* Video inside screen */}
-                <div className="relative aspect-video w-full bg-black">
-                  <video
-                    src="https://storage.googleapis.com/runable-templates/cli-uploads%2FwZH4PKqu2ntmfWndP7ZP8Yn8qCTNw8e5%2FTPdGSAoBz7S3W0kytmOGI%2Fgemini_generated_video_9140f014_WqBg0n.mp4"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              </div>
-
-              {/* Monitor stand */}
-              <div className="mx-auto h-4 w-20 bg-gradient-to-b from-gray-300 to-gray-200" />
-              <div className="mx-auto h-2 w-36 rounded-full bg-gray-200 shadow-sm" />
-            </div>
-
-            {/* Floating badge — top right */}
-            <div className="data-card absolute -right-4 -top-4 z-20 flex items-center gap-2 rounded-2xl border border-blue-100 bg-white px-4 py-2.5 shadow-xl shadow-blue-500/10 sm:-right-6 sm:-top-5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500/10">
-                <Brain className="h-4 w-4 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-[10px] font-medium text-gray-400">Iris IA activa</p>
-                <p className="text-[12px] font-semibold text-gray-900">Informe generado</p>
-              </div>
-            </div>
-
-            {/* Floating badge — bottom left */}
-            <div className="data-card card-two absolute -bottom-4 -left-4 z-20 flex items-center gap-2 rounded-2xl border border-blue-100 bg-white px-4 py-2.5 shadow-xl shadow-blue-500/10 sm:-bottom-5 sm:-left-6">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-green-500/10">
-                <ShieldCheck className="h-4 w-4 text-green-500" />
-              </div>
-              <div>
-                <p className="text-[10px] font-medium text-gray-400">Cumplimiento</p>
-                <p className="text-[12px] font-semibold text-gray-900">HIPAA · LGPD</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
