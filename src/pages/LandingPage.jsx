@@ -233,64 +233,28 @@ function Hero() {
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar />
 
-        <div className="grid flex-1 items-center gap-10 px-6 pb-10 pt-10 sm:px-12 md:px-20 lg:grid-cols-[0.95fr_1.05fr] lg:px-28 lg:pb-20">
-          {/* ── Left col ── */}
-          <div className="max-w-xl">
+        <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6 pb-16 pt-6 sm:px-12 md:px-20 lg:px-28">
+          {/* ── CTA buttons ── */}
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Link
-              to="/funcionalidades/tecnologia/ia-asistente"
-              className="group mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/70 px-4 py-2 text-[11.5px] font-medium text-blue-600 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-blue-300 hover:bg-white"
+              to="/login"
+              className="group inline-flex items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-7 py-3.5 text-[14px] font-medium text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-blue-500/30"
             >
-              <ScanLine className="h-3.5 w-3.5" />
-              IA médica para clínicas modernas
-              <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+              Solicitar demo
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
 
-            <h1 className="animate-fade-up text-[2.35rem] font-medium leading-[1.04] tracking-tight text-gray-950 sm:text-[3.4rem] lg:text-[4.2rem]">
-              Software médico inteligente para clínicas que quieren trabajar mejor.
-            </h1>
-
-            <p className="mt-5 max-w-md animate-fade-up-delay text-[15px] leading-6 text-gray-500 sm:text-[16px]">
-              Centraliza pacientes, historiales, diagnósticos y procesos clínicos en una plataforma rápida, simple y moderna.
-            </p>
-
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/login"
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-6 py-3 text-[13px] font-medium text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-blue-500/30"
-              >
-                Solicitar demo
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </Link>
-
-              <Link
-                to="/productos"
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white/60 px-6 py-3 text-[13px] font-medium text-gray-700 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-gray-950"
-              >
-                Ver plataforma
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </Link>
-            </div>
-
-            {/* Mini feature cards */}
-            <div className="mt-8 grid max-w-lg grid-cols-1 gap-3 sm:grid-cols-3">
-              {[
-                { icon: FileText,   title: 'Historial clínico' },
-                { icon: UserRound,  title: 'Gestión de pacientes' },
-                { icon: Activity,   title: 'Diagnóstico asistido' },
-              ].map(item => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-100 hover:shadow-md"
-                >
-                  <item.icon className="mb-3 h-4 w-4 text-blue-500" />
-                  <p className="text-[12px] font-medium text-gray-700">{item.title}</p>
-                </div>
-              ))}
-            </div>
+            <Link
+              to="/productos"
+              className="group inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-7 py-3.5 text-[14px] font-medium text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:text-gray-950"
+            >
+              Ver plataforma
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
           </div>
 
-          {/* ── Right col — Monitor mockup with video ── */}
-          <div className="relative mx-auto w-full max-w-[640px]">
+          {/* ── Monitor mockup with video ── */}
+          <div className="relative mx-auto w-full max-w-[860px]">
             {/* Glow behind monitor */}
             <div aria-hidden className="absolute left-1/2 top-1/2 h-[320px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-300/20 blur-[80px]" />
 
