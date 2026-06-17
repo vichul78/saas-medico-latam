@@ -642,6 +642,150 @@ function TabVisual({ tabId }) {
 /* ═══════════════════════════════════════════════════════════════════════════════
    TELERADIOLOGY
 ═══════════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════════════
+   IA NATIVE HERO — Eden-style ad section
+═══════════════════════════════════════════════════════════════════════════════ */
+function IANativeSection() {
+  return (
+    <section className="relative overflow-hidden bg-[#f5f5f7] py-24 px-4 sm:px-8">
+      {/* Subtle blue glow background */}
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-blue-200/30 blur-[120px]" />
+
+      <div className="relative z-10 mx-auto max-w-5xl text-center">
+        {/* Badge */}
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-blue-600 shadow-sm">
+          ✦ IA nativa en tu PACS
+        </div>
+
+        {/* Headline — bold stat like Eden */}
+        <h2 className="mx-auto mb-5 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
+          Entrega reportes{' '}
+          <span className="text-blue-600">70% más rápido</span>
+          <br />
+          con IA clínica nativa
+        </h2>
+
+        {/* Sub */}
+        <p className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-gray-500 sm:text-lg">
+          Genera reportes clínicos precisos con IA de frontera que interpreta, razona y redacta
+          junto al radiólogo — nativa en tu PACS.
+        </p>
+
+        {/* CTA */}
+        <div className="mb-14 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            to="/contacto"
+            className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-7 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 active:scale-95"
+          >
+            Solicitar demo
+          </Link>
+          <Link
+            to="/soluciones/radiologia"
+            className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-7 py-3.5 text-sm font-semibold text-gray-700 transition hover:border-blue-400 hover:text-blue-600"
+          >
+            Ver cómo funciona <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {/* Device mockup — dark DICOM viewer (correct: radiological images are black) */}
+        <div className="relative mx-auto max-w-4xl">
+          {/* Glow under device */}
+          <div aria-hidden className="absolute -bottom-6 left-1/2 h-20 w-2/3 -translate-x-1/2 rounded-full bg-blue-400/20 blur-2xl" />
+
+          {/* Main monitor */}
+          <div className="relative z-10 overflow-hidden rounded-2xl border border-gray-300 bg-gray-950 shadow-2xl shadow-blue-950/20">
+            {/* Title bar */}
+            <div className="flex h-9 items-center gap-2 border-b border-white/10 bg-gray-900 px-4">
+              <div className="h-3 w-3 rounded-full bg-red-400/70" />
+              <div className="h-3 w-3 rounded-full bg-yellow-400/70" />
+              <div className="h-3 w-3 rounded-full bg-green-400/70" />
+              <div className="mx-auto flex h-5 w-48 items-center gap-1.5 rounded bg-gray-700 px-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-400/60" />
+                <span className="text-[9px] text-gray-400">Iris RIS/PACS · Informe automático</span>
+              </div>
+            </div>
+
+            {/* DICOM viewer layout */}
+            <div className="flex h-[320px] sm:h-[400px]">
+              {/* Sidebar worklist */}
+              <div className="hidden w-36 shrink-0 border-r border-white/10 bg-gray-900 p-3 sm:block">
+                <div className="mb-2 text-[9px] font-semibold uppercase tracking-widest text-gray-500">Worklist</div>
+                {['CT Tórax', 'RX Tórax', 'MRI Cerebro', 'ECO Abdo'].map((item, i) => (
+                  <div key={item} className={`mb-1.5 rounded-lg px-2.5 py-2 text-[10px] ${i === 0 ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-white/5'}`}>
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              {/* DICOM image area */}
+              <div className="relative flex flex-1 items-center justify-center bg-black">
+                {/* Fake CT scan radial gradient */}
+                <div className="h-52 w-52 rounded-full bg-gradient-radial from-gray-400/80 via-gray-700/60 to-transparent sm:h-64 sm:w-64"
+                  style={{ background: 'radial-gradient(circle, rgba(200,200,200,0.55) 0%, rgba(100,100,100,0.3) 40%, transparent 70%)' }} />
+                {/* Crosshairs */}
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div className="h-px w-full bg-blue-400/20" />
+                </div>
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div className="h-full w-px bg-blue-400/20" />
+                </div>
+                {/* WW/WL tag */}
+                <div className="absolute bottom-3 left-3 font-mono text-[9px] text-gray-500">WW: 400 | WL: 40</div>
+                <div className="absolute right-3 top-3 font-mono text-[9px] text-gray-500">TC · Tórax · Axial</div>
+              </div>
+
+              {/* AI report panel */}
+              <div className="hidden w-56 shrink-0 flex-col border-l border-white/10 bg-gray-900 sm:flex">
+                <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600/20">
+                    <Brain className="h-3.5 w-3.5 text-blue-400" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-white">Iris · IA</span>
+                  <div className="ml-auto h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />
+                </div>
+                <div className="flex-1 space-y-2 overflow-hidden p-3">
+                  <div className="rounded-lg bg-white/5 px-2.5 py-2 text-[10px] text-gray-400">
+                    Analizando TC de tórax…
+                  </div>
+                  <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-2.5 py-2 text-[10px] leading-relaxed text-gray-300">
+                    Parénquima pulmonar sin consolidaciones ni derrame. CTR normal. Sin adenopatías mediastínicas.
+                  </div>
+                  <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-2.5 py-2 text-[10px] font-semibold text-blue-300">
+                    ✦ Impresión: Estudio dentro de límites normales.
+                  </div>
+                  <button className="w-full rounded-lg bg-blue-600 px-2.5 py-1.5 text-[10px] font-semibold text-white transition hover:bg-blue-700">
+                    Exportar PDF firmado
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating badge — speed stat */}
+          <div className="absolute -right-4 -top-4 z-20 rounded-2xl border border-blue-100 bg-white px-4 py-3 shadow-xl shadow-blue-500/10 sm:-right-6">
+            <div className="text-2xl font-bold text-blue-600">70%</div>
+            <div className="text-[10px] font-medium text-gray-500">más rápido</div>
+          </div>
+
+          {/* Floating badge — accuracy */}
+          <div className="absolute -bottom-4 -left-4 z-20 rounded-2xl border border-blue-100 bg-white px-4 py-3 shadow-xl shadow-blue-500/10 sm:-left-6">
+            <div className="text-2xl font-bold text-blue-600">98%</div>
+            <div className="text-[10px] font-medium text-gray-500">precisión diagnóstica</div>
+          </div>
+        </div>
+
+        {/* Social proof chips */}
+        <div className="mt-16 flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-gray-400">
+          <span>✓ Conforme HIPAA / LGPD</span>
+          <span>✓ Integración DICOM nativa</span>
+          <span>✓ Firma digital con QR</span>
+          <span>✓ Sin instalaciones</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function TeleradiologySection() {
   const steps = [
     { step: '01', title: 'Carga Segura', desc: 'La clínica local sube el estudio DICOM al sistema. Encriptación end-to-end, cumplimiento HIPAA/LGPD.', icon: '☁️' },
@@ -818,6 +962,7 @@ export default function LandingPage() {
       <ModernFeatures />
       <SpecialistsCarousel />
       <ProductTabs />
+      <IANativeSection />
       <TeleradiologySection />
       <FeaturesSection />
       <StatsSection />
